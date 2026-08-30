@@ -37,9 +37,9 @@ class move_pillbottle_pad(Base_Task):
         self.pillbottle.set_mass(0.05)
 
         if rand_pos.p[0] > 0:
-            xlim = [0.05, 0.25]
-        else:
             xlim = [-0.25, -0.05]
+        else:
+            xlim = [0.05, 0.25]
         target_rand_pose = rand_pose(
             xlim=xlim,
             ylim=[-0.2, 0.1],
