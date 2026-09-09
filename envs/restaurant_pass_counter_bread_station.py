@@ -27,7 +27,7 @@ class restaurant_pass_counter_bread_station(restaurant_pass_counter):
             ),
             create_actor(
                 scene=self,
-                pose=sapien.Pose([0.40, -0.08, 0.741], [0.683013, 0.683013, -0.183013, -0.183013]),
+                pose=sapien.Pose([-0.03, -0.15, 0.741], [0.683013, 0.683013, -0.183013, -0.183013]),
                 modelname="075_bread",
                 convex=True,
                 model_id=1,
