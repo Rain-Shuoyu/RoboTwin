@@ -67,7 +67,7 @@ class restaurant_pass_counter(Base_Task):
 
         self.bell = create_actor(
             scene=self,
-            pose=sapien.Pose([0.42, 0.20, 0.741], [0.5, 0.5, 0.5, 0.5]),
+            pose=sapien.Pose([0.30, 0.20, 0.741], [0.5, 0.5, 0.5, 0.5]),
             modelname="050_bell",
             convex=True,
             model_id=0,
