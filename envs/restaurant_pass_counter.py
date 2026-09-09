@@ -3,9 +3,21 @@ from .utils import *
 import sapien
 
 
+LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
+RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
+
+
 class restaurant_pass_counter(Base_Task):
 
     def setup_demo(self, **kwargs):
+        kwargs = kwargs.copy()
+        left_embodiment_config = kwargs["left_embodiment_config"].copy()
+        right_embodiment_config = kwargs["right_embodiment_config"].copy()
+        left_embodiment_config["homestate"] = [LEFT_HOME_STATE.copy(), RIGHT_HOME_STATE.copy()]
+        right_embodiment_config["homestate"] = [LEFT_HOME_STATE.copy(), RIGHT_HOME_STATE.copy()]
+        kwargs["left_embodiment_config"] = left_embodiment_config
+        kwargs["right_embodiment_config"] = right_embodiment_config
+        kwargs["table_texture_override"] = "custom/restaurant_dark_grid_10cm"
         super()._init_task_env_(**kwargs)
 
     def load_actors(self):

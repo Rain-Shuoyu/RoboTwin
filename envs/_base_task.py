@@ -117,7 +117,11 @@ class Base_Task(gym.Env):
 
         self.instruction = None  # for Eval
 
-        self.create_table_and_wall(table_xy_bias=table_xy_bias, table_height=0.74)
+        self.create_table_and_wall(
+            table_xy_bias=table_xy_bias,
+            table_height=0.74,
+            table_texture_override=kwags.get("table_texture_override"),
+        )
         self.load_robot(**kwags)
         self.load_camera(**kwags)
         self.robot.move_to_homestate()
@@ -268,7 +272,7 @@ class Base_Task(gym.Env):
                 y=kwargs.get("camera_rpy_y", 2.45),
             )
 
-    def create_table_and_wall(self, table_xy_bias=[0, 0], table_height=0.74):
+    def create_table_and_wall(self, table_xy_bias=[0, 0], table_height=0.74, table_texture_override=None):
         self.table_xy_bias = table_xy_bias
         wall_texture, table_texture = None, None
         table_height += self.table_z_bias
@@ -292,6 +296,9 @@ class Base_Task(gym.Env):
                 self.table_texture = None
         else:
             self.wall_texture, self.table_texture = None, None
+
+        if table_texture_override is not None:
+            self.table_texture = table_texture_override
 
         self.wall = create_box(
             self.scene,
