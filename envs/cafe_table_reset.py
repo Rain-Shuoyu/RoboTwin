@@ -14,12 +14,11 @@ class cafe_table_reset(Base_Task):
         super()._init_task_env_(**kwargs, table_texture_override="custom/restaurant_dark_grid_10cm")
 
     def _zone_marker(self, position, half_size, color, name):
-        return create_box(
+        return create_visual_box(
             scene=self.scene,
             pose=sapien.Pose(p=position, q=[1, 0, 0, 0]),
             half_size=half_size,
             color=color,
-            is_static=True,
             name=name,
         )
 
