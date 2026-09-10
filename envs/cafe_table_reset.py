@@ -50,13 +50,13 @@ class cafe_table_reset(Base_Task):
             return result
 
         self.cup = actor("021_cup", [-0.40, -0.10, 0.741])
-        self.mug = actor("039_mug", [-0.25, -0.22, 0.741])
-        self.plate = actor("003_plate", [-0.10, -0.11, 0.741])
+        self.mug = actor("039_mug", [-0.25, -0.22, 0.741], quat=[0.5, 0.5, 0.5, 0.5])
+        self.plate = actor("003_plate", [-0.10, -0.11, 0.741], quat=[0.5, 0.5, 0.5, 0.5])
         self.tissue_box = actor("023_tissue-box", [-0.38, 0.11, 0.741])
         self.tray = actor("008_tray", [0.00, -0.02, 0.741], mass=0.12, quat=[0.706527, 0.706483, -0.0291356, -0.0291767])
         self.table_bin = actor("063_tabletrashbin", [0.38, 0.16, 0.741], is_static=True, quat=[0.5, 0.5, 0.5, 0.5])
-        self.cleaner = actor("096_cleaner", [0.22, 0.15, 0.741])
-        self.roll_paper = actor("028_roll-paper", [-0.15, 0.15, 0.741])
+        self.cleaner = actor("096_cleaner", [0.36, 0.02, 0.741], is_static=True)
+        self.roll_paper = actor("028_roll-paper", [-0.15, 0.15, 0.741], model_id=1)
         self.breadbasket = actor("076_breadbasket", [0.28, -0.16, 0.741], mass=0.12)
         self.bread = actor("075_bread", [-0.42, 0.17, 0.741], mass=0.04)
         self.bell = actor("050_bell", [0.48, -0.22, 0.741], is_static=True, quat=[0.5, 0.5, 0.5, 0.5])
@@ -87,7 +87,6 @@ class cafe_table_reset(Base_Task):
         self._place_in_region(self.tray, "right", [0.31, -0.02], z=0.80)
         self._place_in_region(self.roll_paper, "left", [0.38, 0.16], z=0.82)
         self._place_in_region(self.tissue_box, "right", [0.22, 0.10], z=0.82)
-        self._place_in_region(self.cleaner, "left", [0.36, 0.02], z=0.82)
         self._place_in_region(self.bread, "right", [0.28, -0.16], z=0.82)
 
         self.move(self.grasp_actor(self.bell, arm_tag="right", pre_grasp_dis=0.10, grasp_dis=0.10, contact_point_id=0))
