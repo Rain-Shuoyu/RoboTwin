@@ -61,18 +61,6 @@ class cafe_table_reset(Base_Task):
         self.bread = actor("075_bread", [-0.42, 0.17, 0.741], mass=0.04)
         self.bell = actor("050_bell", [0.48, -0.22, 0.741], is_static=True)
 
-        for item, padding in (
-            (self.cup, 0.04),
-            (self.mug, 0.04),
-            (self.plate, 0.05),
-            (self.tissue_box, 0.05),
-            (self.tray, 0.10),
-            (self.cleaner, 0.05),
-            (self.roll_paper, 0.04),
-            (self.breadbasket, 0.06),
-            (self.bread, 0.04),
-        ):
-            self.add_prohibit_area(item, padding=padding)
         self.check_arm_function = self.is_right_gripper_close
 
     def _place_on_tray(self, item, arm_tag, offset):
