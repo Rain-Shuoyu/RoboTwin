@@ -48,16 +48,16 @@ class cafe_table_reset(Base_Task):
                 result.set_mass(mass)
             return result
 
-        self.cup = actor("021_cup", [-0.40, -0.10, 0.741], quat=[0.5, 0.5, 0.5, 0.5])
-        self.mug = actor("039_mug", [-0.25, -0.22, 0.741], quat=[0.5, 0.5, 0.5, 0.5])
-        self.plate = actor("003_plate", [-0.10, -0.11, 0.741], quat=[0.5, 0.5, 0.5, 0.5])
-        self.tissue_box = actor("023_tissue-box", [-0.38, 0.11, 0.741], quat=[0.5, 0.5, 0.5, 0.5])
-        self.tray = actor("008_tray", [0.00, -0.02, 0.741], mass=0.12, quat=[0.706527, 0.706483, -0.0291356, -0.0291767])
+        self.cup = actor("021_cup", [-0.40, -0.25, 0.741], quat=[0.5, 0.5, 0.5, 0.5])
+        self.mug = actor("039_mug", [-0.22, -0.25, 0.741], quat=[0.5, 0.5, 0.5, 0.5])
+        self.plate = actor("003_plate", [0.00, -0.25, 0.741], quat=[0.5, 0.5, 0.5, 0.5])
+        self.tissue_box = actor("023_tissue-box", [-0.42, 0.18, 0.741], quat=[0.5, 0.5, 0.5, 0.5])
+        self.tray = actor("008_tray", [0.16, 0.06, 0.741], mass=0.12, quat=[0.706527, 0.706483, -0.0291356, -0.0291767])
         self.table_bin = actor("063_tabletrashbin", [0.38, 0.16, 0.741], is_static=True, quat=[0.5, 0.5, 0.5, 0.5])
-        self.cleaner = actor("096_cleaner", [0.36, 0.02, 0.741], is_static=True)
-        self.roll_paper = actor("028_roll-paper", [-0.15, 0.15, 0.741], model_id=1, quat=[1, 0, 0, 0])
-        self.breadbasket = actor("076_breadbasket", [0.28, -0.16, 0.741], mass=0.12)
-        self.bread = actor("075_bread", [-0.42, 0.17, 0.741], mass=0.04)
+        self.cleaner = actor("096_cleaner", [0.26, 0.20, 0.741], is_static=True)
+        self.roll_paper = actor("028_roll-paper", [0.00, 0.18, 0.741], model_id=1, quat=[1, 0, 0, 0])
+        self.breadbasket = actor("076_breadbasket", [0.40, -0.20, 0.741], mass=0.12)
+        self.bread = actor("075_bread", [-0.20, 0.18, 0.741], mass=0.04)
         self.bell = actor("050_bell", [0.48, -0.22, 0.741], is_static=True, quat=[0.5, 0.5, 0.5, 0.5])
 
         self.check_arm_function = self.is_right_gripper_close
