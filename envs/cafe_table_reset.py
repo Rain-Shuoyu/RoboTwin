@@ -1,4 +1,4 @@
-"""Cafe table-clearing task on RoboTwin's standard table."""
+"""Cafe table-reset task on RoboTwin's standard table."""
 
 import numpy as np
 import sapien
@@ -13,9 +13,15 @@ RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 UPRIGHT_CUP_QUAT = (0.5, 0.5, 0.5, 0.5)
 TIPPED_CUP_QUAT = (0.0, 2**-0.5, 0.0, 2**-0.5)
+COFFEE_MACHINE_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
 
-BASKET_CENTER_XY = np.asarray([-0.29, 0.13])
+BASKET_CENTER_XY = np.asarray([-0.38, 0.16])
 BASKET_INTERIOR_HALF_XY = np.asarray([0.075, 0.045])
+COASTER_CENTERS_XY = (
+    np.asarray([-0.10, 0.16]),
+    np.asarray([0.10, 0.16]),
+)
+COASTER_INTERIOR_HALF_XY = np.asarray([0.055, 0.055])
 
 PAPER_LOBES = (
     ((-0.006, 0.000, 0.000), 0.018),
@@ -26,6 +32,7 @@ PAPER_LOBES = (
 
 MAX_LINEAR_SPEED_M_S = 0.05
 MAX_ANGULAR_SPEED_RAD_S = 0.5
+MAX_UPRIGHT_ANGLE_DEG = 20.0
 HOME_TOLERANCE_RAD = 0.05
 STABLE_SUCCESS_STEPS = 250
 
@@ -67,7 +74,7 @@ def create_paper_wad(*, scene, pose, name):
 
 
 class cafe_table_reset(Base_Task):
-    """Clear two used cups and two paper wads into a small waste basket."""
+    """Reset two used cups onto coasters and clear two paper wads."""
 
     def setup_demo(self, **kwargs):
         kwargs = kwargs.copy()
@@ -90,12 +97,13 @@ class cafe_table_reset(Base_Task):
             is_static=False,
             mass=0.05,
             quat=UPRIGHT_CUP_QUAT,
+            convex=True,
         ):
             result = create_actor(
                 scene=self,
                 pose=sapien.Pose(position, quat),
                 modelname=modelname,
-                convex=True,
+                convex=convex,
                 model_id=model_id,
                 is_static=is_static,
             )
@@ -126,12 +134,27 @@ class cafe_table_reset(Base_Task):
             model_id=0,
             is_static=True,
         )
-        self.cafe_plant = actor(
-            "120_plant",
-            [0.34, 0.22, 0.741],
-            instance_name="cafe_plant",
+        self.coasters = [
+            actor(
+                "019_coaster",
+                [center[0], center[1], 0.741],
+                instance_name=name,
+                model_id=0,
+                is_static=True,
+            )
+            for center, name in zip(
+                COASTER_CENTERS_XY,
+                ("left_coaster", "right_coaster"),
+            )
+        ]
+        self.coffee_machine = actor(
+            "900_coffee_machine",
+            [0.43, 0.19, 0.741],
+            instance_name="coffee_machine",
             model_id=0,
             is_static=True,
+            convex=False,
+            quat=COFFEE_MACHINE_QUAT,
         )
         self.paper_wads = [
             create_paper_wad(
@@ -167,17 +190,23 @@ class cafe_table_reset(Base_Task):
     def play_once(self):
         """Diagnostic native expert; never use this as public-observation evidence."""
 
+        for cup, coaster, arm_tag in zip(
+            self.used_cups,
+            self.coasters,
+            ("left", "right"),
+        ):
+            position = np.asarray(coaster.get_pose().p, dtype=float).copy()
+            position[2] += 0.008
+            self._transfer(cup, arm_tag, sapien.Pose(position, UPRIGHT_CUP_QUAT))
+
         basket_z = float(self.waste_basket.get_pose().p[2] + 0.055)
-        targets = (*self.used_cups, *self.paper_wads)
         placements = (
-            [-0.325, 0.13, basket_z],
-            [-0.255, 0.13, basket_z],
-            [-0.29, 0.105, basket_z + 0.035],
-            [-0.29, 0.155, basket_z + 0.035],
+            [-0.40, 0.145, basket_z + 0.035],
+            [-0.36, 0.175, basket_z + 0.035],
         )
         for target, arm_tag, position in zip(
-            targets,
-            ("left", "right", "left", "right"),
+            self.paper_wads,
+            ("left", "right"),
             placements,
         ):
             self._transfer(
@@ -189,9 +218,13 @@ class cafe_table_reset(Base_Task):
         self.info["info"] = {
             "{upright_used_cup}": "021_cup/base6",
             "{tipped_used_cup}": "021_cup/base6",
+            "{left_coaster}": "019_coaster/base0",
+            "{right_coaster}": "019_coaster/base0",
             "{paper_wad_1}": "procedural_paper_wad",
             "{paper_wad_2}": "procedural_paper_wad",
-            "task_id": "cafe_table_clearing_v2",
+            "{waste_basket}": "076_breadbasket/base0",
+            "{coffee_machine}": "900_coffee_machine/base0",
+            "task_id": "cafe_table_reset_coasters_v3",
         }
         return self.info
 
@@ -232,6 +265,30 @@ class cafe_table_reset(Base_Task):
             and self._unheld(target)
         )
 
+    @staticmethod
+    def _upright(actor):
+        rotation = np.asarray(
+            actor.get_pose().to_transformation_matrix()[:3, :3],
+            dtype=float,
+        )
+        world_up_alignment = float(
+            rotation[:, 1] @ np.asarray([0.0, 0.0, 1.0])
+        )
+        return world_up_alignment >= np.cos(np.deg2rad(MAX_UPRIGHT_ANGLE_DEG))
+
+    def _cup_on_coaster(self, cup, coaster):
+        return bool(
+            self._inside(
+                cup,
+                np.asarray(coaster.get_pose().p[:2], dtype=float),
+                COASTER_INTERIOR_HALF_XY,
+            )
+            and self._supported(cup, coaster.get_name())
+            and self._upright(cup)
+            and self._stable(cup)
+            and self._unheld(cup)
+        )
+
     def _arms_home(self):
         measured = (
             np.asarray(self.robot.left_entity.get_qpos()[:7], dtype=float),
@@ -245,12 +302,25 @@ class cafe_table_reset(Base_Task):
         )
 
     def check_success(self):
-        self.subgoal_vector = [
-            self._target_in_basket(target)
-            for target in (*self.used_cups, *self.paper_wads)
+        cup_on_coaster = [
+            [self._cup_on_coaster(cup, coaster) for coaster in self.coasters]
+            for cup in self.used_cups
         ]
+        one_to_one_cup_assignment = bool(
+            (cup_on_coaster[0][0] and cup_on_coaster[1][1])
+            or (cup_on_coaster[0][1] and cup_on_coaster[1][0])
+        )
+        coaster_goals = [
+            any(cup_results[coaster_index] for cup_results in cup_on_coaster)
+            for coaster_index in range(len(self.coasters))
+        ]
+        paper_goals = [
+            self._target_in_basket(target) for target in self.paper_wads
+        ]
+        self.subgoal_vector = [*coaster_goals, *paper_goals]
         final_state = bool(
-            all(self.subgoal_vector)
+            one_to_one_cup_assignment
+            and all(self.subgoal_vector)
             and self.robot.is_left_gripper_open()
             and self.robot.is_right_gripper_open()
             and self._arms_home()
