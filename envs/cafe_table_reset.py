@@ -10,11 +10,13 @@ from .utils import *
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 
-TASK_ID = "cafe_table_reset_coasters_v4"
+TASK_ID = "cafe_table_reset_coasters_v5"
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 UPRIGHT_CUP_QUAT = (0.5, 0.5, 0.5, 0.5)
 TIPPED_CUP_QUAT = (0.0, 2**-0.5, 0.0, 2**-0.5)
 COFFEE_MACHINE_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
+UPRIGHT_CUP_SCALE_MULTIPLIER = 1.5
+DIRTY_CUP_SCALE_MULTIPLIER = 0.8
 
 BASKET_CENTER_XY = np.asarray([-0.38, 0.16])
 BASKET_INTERIOR_HALF_XY = np.asarray([0.075, 0.045])
@@ -99,6 +101,7 @@ class cafe_table_reset(Base_Task):
             mass=0.05,
             quat=UPRIGHT_CUP_QUAT,
             convex=True,
+            scale_multiplier=1.0,
         ):
             result = create_actor(
                 scene=self,
@@ -107,6 +110,7 @@ class cafe_table_reset(Base_Task):
                 convex=convex,
                 model_id=model_id,
                 is_static=is_static,
+                scale_multiplier=scale_multiplier,
             )
             result.set_name(instance_name)
             if not is_static:
@@ -119,13 +123,15 @@ class cafe_table_reset(Base_Task):
                 [-0.20, -0.15, 0.741],
                 instance_name="upright_used_cup",
                 model_id=6,
+                scale_multiplier=UPRIGHT_CUP_SCALE_MULTIPLIER,
             ),
             actor(
-                "021_cup",
+                "901_dirty_coffee_cup",
                 [0.14, -0.10, 0.79],
                 instance_name="tipped_used_cup",
-                model_id=6,
+                model_id=0,
                 quat=TIPPED_CUP_QUAT,
+                scale_multiplier=DIRTY_CUP_SCALE_MULTIPLIER,
             ),
         ]
         self.waste_basket = actor(
@@ -218,7 +224,7 @@ class cafe_table_reset(Base_Task):
 
         self.info["info"] = {
             "{upright_used_cup}": "021_cup/base6",
-            "{tipped_used_cup}": "021_cup/base6",
+            "{tipped_used_cup}": "901_dirty_coffee_cup/base0",
             "{left_coaster}": "019_coaster/base0",
             "{right_coaster}": "019_coaster/base0",
             "{paper_wad_1}": "procedural_paper_wad",

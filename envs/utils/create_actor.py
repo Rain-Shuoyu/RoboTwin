@@ -7,6 +7,7 @@ import json
 import os, re
 
 from .actor_utils import Actor, ArticulationActor
+from .model_scale import scaled_model_data
 
 
 class UnStableError(Exception):
@@ -503,6 +504,7 @@ def create_actor(
         pose: sapien.Pose,
         modelname: str,
         scale=(1, 1, 1),
+        scale_multiplier=1.0,
         convex=False,
         is_static=False,
         model_id=0,
@@ -533,7 +535,9 @@ def create_actor(
 
     try:
         with open(json_file_path, "r") as file:
-            model_data = json.load(file)
+            model_data = scaled_model_data(
+                json.load(file), scale_multiplier
+            )
         scale = model_data["scale"]
     except:
         model_data = None
