@@ -18,8 +18,8 @@ COFFEE_MACHINE_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
 BASKET_CENTER_XY = np.asarray([-0.38, 0.16])
 BASKET_INTERIOR_HALF_XY = np.asarray([0.075, 0.045])
 COASTER_CENTERS_XY = (
-    np.asarray([-0.10, 0.16]),
-    np.asarray([0.10, 0.16]),
+    np.asarray([-0.21, 0.21]),
+    np.asarray([-0.21, 0.06]),
 )
 COASTER_INTERIOR_HALF_XY = np.asarray([0.055, 0.055])
 
@@ -149,7 +149,7 @@ class cafe_table_reset(Base_Task):
         ]
         self.coffee_machine = actor(
             "900_coffee_machine",
-            [0.43, 0.19, 0.741],
+            [0.20, 0.16, 0.741],
             instance_name="coffee_machine",
             model_id=0,
             is_static=True,
