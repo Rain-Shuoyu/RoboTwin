@@ -10,19 +10,28 @@ from .utils import *
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 
-TASK_ID = "cafe_table_reset_coasters_v5"
+TASK_ID = "cafe_table_reset_coasters_v6"
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 UPRIGHT_CUP_QUAT = (0.5, 0.5, 0.5, 0.5)
 TIPPED_CUP_QUAT = (0.0, 2**-0.5, 0.0, 2**-0.5)
 COFFEE_MACHINE_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
 UPRIGHT_CUP_SCALE_MULTIPLIER = 1.5
 DIRTY_CUP_SCALE_MULTIPLIER = 0.8
+WASTE_BOX_SCALE_MULTIPLIER = 0.65
 
-BASKET_CENTER_XY = np.asarray([-0.38, 0.16])
-BASKET_INTERIOR_HALF_XY = np.asarray([0.075, 0.045])
+WASTE_BOX_CENTER_XY = np.asarray([-0.38, 0.16])
+WASTE_BOX_INTERIOR_HALF_XY = np.asarray([0.075, 0.075])
+WASTE_BOX_RIM_HEIGHT_M = 0.089
+WASTE_BOX_COLLISION_BOXES = (
+    ((0.0005, 0.0040, -0.0036), (0.1000, 0.0040, 0.1000)),
+    ((-0.0955, 0.0445, -0.0036), (0.0040, 0.0445, 0.1000)),
+    ((0.0965, 0.0445, -0.0036), (0.0040, 0.0445, 0.1000)),
+    ((0.0005, 0.0445, -0.0996), (0.0920, 0.0445, 0.0040)),
+    ((0.0005, 0.0445, 0.0924), (0.0920, 0.0445, 0.0040)),
+)
 COASTER_CENTERS_XY = (
-    np.asarray([-0.21, 0.21]),
-    np.asarray([-0.21, 0.06]),
+    np.asarray([-0.10, 0.21]),
+    np.asarray([-0.10, 0.06]),
 )
 COASTER_INTERIOR_HALF_XY = np.asarray([0.055, 0.055])
 
@@ -102,6 +111,7 @@ class cafe_table_reset(Base_Task):
             quat=UPRIGHT_CUP_QUAT,
             convex=True,
             scale_multiplier=1.0,
+            collision_boxes=None,
         ):
             result = create_actor(
                 scene=self,
@@ -111,6 +121,7 @@ class cafe_table_reset(Base_Task):
                 model_id=model_id,
                 is_static=is_static,
                 scale_multiplier=scale_multiplier,
+                collision_boxes=collision_boxes,
             )
             result.set_name(instance_name)
             if not is_static:
@@ -135,11 +146,14 @@ class cafe_table_reset(Base_Task):
             ),
         ]
         self.waste_basket = actor(
-            "076_breadbasket",
-            [BASKET_CENTER_XY[0], BASKET_CENTER_XY[1], 0.741],
+            "902_dirty_waste_box",
+            [WASTE_BOX_CENTER_XY[0], WASTE_BOX_CENTER_XY[1], 0.741],
             instance_name="waste_basket",
             model_id=0,
             is_static=True,
+            convex=False,
+            scale_multiplier=WASTE_BOX_SCALE_MULTIPLIER,
+            collision_boxes=WASTE_BOX_COLLISION_BOXES,
         )
         self.coasters = [
             actor(
@@ -206,7 +220,9 @@ class cafe_table_reset(Base_Task):
             position[2] += 0.008
             self._transfer(cup, arm_tag, sapien.Pose(position, UPRIGHT_CUP_QUAT))
 
-        basket_z = float(self.waste_basket.get_pose().p[2] + 0.055)
+        basket_z = float(
+            self.waste_basket.get_pose().p[2] + WASTE_BOX_RIM_HEIGHT_M
+        )
         placements = (
             [-0.40, 0.145, basket_z + 0.035],
             [-0.36, 0.175, basket_z + 0.035],
@@ -229,7 +245,7 @@ class cafe_table_reset(Base_Task):
             "{right_coaster}": "019_coaster/base0",
             "{paper_wad_1}": "procedural_paper_wad",
             "{paper_wad_2}": "procedural_paper_wad",
-            "{waste_basket}": "076_breadbasket/base0",
+            "{waste_basket}": "902_dirty_waste_box/base0",
             "{coffee_machine}": "900_coffee_machine/base0",
             "task_id": TASK_ID,
         }
@@ -266,7 +282,11 @@ class cafe_table_reset(Base_Task):
 
     def _target_in_basket(self, target):
         return bool(
-            self._inside(target, BASKET_CENTER_XY, BASKET_INTERIOR_HALF_XY)
+            self._inside(
+                target,
+                WASTE_BOX_CENTER_XY,
+                WASTE_BOX_INTERIOR_HALF_XY,
+            )
             and self._supported(target, self.waste_basket.get_name())
             and self._stable(target)
             and self._unheld(target)

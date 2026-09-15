@@ -508,6 +508,7 @@ def create_actor(
         convex=False,
         is_static=False,
         model_id=0,
+        collision_boxes=None,
 ) -> Actor:
     scene, pose = preprocess(scene, pose)
     modeldir = Path("assets/objects") / modelname
@@ -548,7 +549,14 @@ def create_actor(
     else:
         builder.set_physx_body_type("dynamic")
 
-    if convex == True:
+    if collision_boxes is not None:
+        for center, half_size in collision_boxes:
+            builder.add_box_collision(
+                pose=sapien.Pose(center),
+                half_size=half_size,
+                material=scene.default_physical_material,
+            )
+    elif convex == True:
         builder.add_multiple_convex_collisions_from_file(filename=str(collision_file), scale=scale)
     else:
         builder.add_nonconvex_collision_from_file(
