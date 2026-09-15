@@ -1,4 +1,4 @@
-"""Two-guest cafe turnover task on RoboTwin's standard table."""
+"""Cafe table-clearing task on RoboTwin's standard table."""
 
 import numpy as np
 import sapien
@@ -10,22 +10,64 @@ from .utils import *
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 
-TRAY_CENTER_XY = np.asarray([-0.27, 0.10])
-TRAY_INTERIOR_HALF_XY = np.asarray([0.12, 0.065])
-SEAT_CENTERS_XY = (np.asarray([-0.23, -0.17]), np.asarray([0.23, -0.17]))
-SEAT_INTERIOR_HALF_XY = np.asarray([0.055, 0.055])
-BASKET_CENTER_XY = np.asarray([0.00, -0.15])
+WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
+UPRIGHT_CUP_QUAT = (0.5, 0.5, 0.5, 0.5)
+TIPPED_CUP_QUAT = (0.0, 2**-0.5, 0.0, 2**-0.5)
+
+BASKET_CENTER_XY = np.asarray([-0.29, 0.13])
 BASKET_INTERIOR_HALF_XY = np.asarray([0.075, 0.045])
+
+PAPER_LOBES = (
+    ((-0.006, 0.000, 0.000), 0.018),
+    ((0.007, 0.003, 0.002), 0.016),
+    ((0.000, -0.007, 0.005), 0.015),
+    ((0.003, 0.006, -0.004), 0.014),
+)
 
 MAX_LINEAR_SPEED_M_S = 0.05
 MAX_ANGULAR_SPEED_RAD_S = 0.5
-MAX_MUG_TILT_DEG = 20.0
 HOME_TOLERANCE_RAD = 0.05
 STABLE_SUCCESS_STEPS = 250
 
 
+def create_paper_wad(*, scene, pose, name):
+    """Create one lightweight, irregular, graspable paper-wad actor."""
+
+    native_scene, pose = preprocess(scene, pose)
+    builder = native_scene.create_actor_builder()
+    builder.set_physx_body_type("dynamic")
+    material = sapien.render.RenderMaterial(base_color=[0.93, 0.91, 0.86, 1.0])
+    for offset, radius in PAPER_LOBES:
+        local_pose = sapien.Pose(offset)
+        builder.add_sphere_collision(
+            pose=local_pose,
+            radius=radius,
+            material=native_scene.default_physical_material,
+        )
+        builder.add_sphere_visual(
+            pose=local_pose,
+            radius=radius,
+            material=material,
+        )
+    builder.set_initial_pose(pose)
+    entity = builder.build(name=name)
+
+    actor_data = {
+        "center": [0, 0, 0],
+        "extents": [0.026, 0.026, 0.026],
+        "scale": [0.026, 0.026, 0.026],
+        "target_pose": [np.eye(4).tolist()],
+        "contact_points_pose": [np.eye(4).tolist()],
+        "functional_matrix": [np.eye(4).tolist()],
+        "contact_points_description": ["The exposed surface of the paper wad."],
+        "contact_points_group": [[0]],
+        "contact_points_mask": [True],
+    }
+    return Actor(entity, actor_data, mass=0.015)
+
+
 class cafe_table_reset(Base_Task):
-    """Recover two old cups and replenish two places and the bread basket."""
+    """Clear two used cups and two paper wads into a small waste basket."""
 
     def setup_demo(self, **kwargs):
         kwargs = kwargs.copy()
@@ -35,46 +77,10 @@ class cafe_table_reset(Base_Task):
         right_config["homestate"] = [LEFT_HOME_STATE.copy(), RIGHT_HOME_STATE.copy()]
         kwargs["left_embodiment_config"] = left_config
         kwargs["right_embodiment_config"] = right_config
-        kwargs["table_texture_override"] = "custom/restaurant_dark_grid_10cm"
+        kwargs["table_color_override"] = WOOD_TABLE_COLOR
         super()._init_task_env_(**kwargs)
 
-    def _zone_marker(self, position, half_size, color, name):
-        return create_visual_box(
-            scene=self.scene,
-            pose=sapien.Pose(p=position, q=[1, 0, 0, 0]),
-            half_size=half_size,
-            color=color,
-            name=name,
-        )
-
     def load_actors(self):
-        self.seat_markers = [
-            self._zone_marker(
-                [-0.23, -0.17, 0.742],
-                [0.07, 0.07, 0.001],
-                (0.72, 0.43, 0.25),
-                "dining_mat_a",
-            ),
-            self._zone_marker(
-                [0.23, -0.17, 0.742],
-                [0.07, 0.07, 0.001],
-                (0.72, 0.43, 0.25),
-                "dining_mat_b",
-            ),
-        ]
-        self.collection_marker = self._zone_marker(
-            [-0.27, 0.10, 0.742],
-            [0.17, 0.115, 0.001],
-            (0.95, 0.78, 0.20),
-            "recovery_zone",
-        )
-        self.supply_marker = self._zone_marker(
-            [0.27, 0.10, 0.742],
-            [0.20, 0.16, 0.001],
-            (0.32, 0.72, 0.42),
-            "replacement_supply_zone",
-        )
-
         def actor(
             modelname,
             position,
@@ -83,11 +89,11 @@ class cafe_table_reset(Base_Task):
             model_id,
             is_static=False,
             mass=0.05,
-            quat=None,
+            quat=UPRIGHT_CUP_QUAT,
         ):
             result = create_actor(
                 scene=self,
-                pose=sapien.Pose(position, quat or [0.5, 0.5, 0.5, 0.5]),
+                pose=sapien.Pose(position, quat),
                 modelname=modelname,
                 convex=True,
                 model_id=model_id,
@@ -98,77 +104,50 @@ class cafe_table_reset(Base_Task):
                 result.set_mass(mass)
             return result
 
-        self.old_cups = [
+        self.used_cups = [
             actor(
                 "021_cup",
-                [-0.23, -0.17, 0.741],
-                instance_name="old_cup_a",
+                [-0.20, -0.15, 0.741],
+                instance_name="upright_used_cup",
                 model_id=6,
             ),
             actor(
                 "021_cup",
-                [0.23, -0.17, 0.741],
-                instance_name="old_cup_b",
+                [0.14, -0.10, 0.79],
+                instance_name="tipped_used_cup",
                 model_id=6,
+                quat=TIPPED_CUP_QUAT,
             ),
         ]
-        self.replacement_mugs = [
-            actor(
-                "039_mug",
-                [0.17, 0.17, 0.741],
-                instance_name="replacement_mug_1",
-                model_id=3,
-            ),
-            actor(
-                "039_mug",
-                [0.36, 0.17, 0.741],
-                instance_name="replacement_mug_2",
-                model_id=3,
-            ),
-        ]
-        self.breads = [
-            actor(
-                "075_bread",
-                [0.20, 0.02, 0.741],
-                instance_name="bread_1",
-                model_id=1,
-                mass=0.04,
-            ),
-            actor(
-                "075_bread",
-                [0.34, 0.02, 0.741],
-                instance_name="bread_2",
-                model_id=1,
-                mass=0.04,
-            ),
-        ]
-        self.tray = actor(
-            "008_tray",
-            [-0.27, 0.10, 0.741],
-            instance_name="recovery_tray",
-            model_id=0,
-            is_static=True,
-            quat=[0.706527, 0.706483, -0.0291356, -0.0291767],
-        )
-        self.breadbasket = actor(
+        self.waste_basket = actor(
             "076_breadbasket",
-            [0.00, -0.15, 0.741],
-            instance_name="bread_basket",
+            [BASKET_CENTER_XY[0], BASKET_CENTER_XY[1], 0.741],
+            instance_name="waste_basket",
             model_id=0,
             is_static=True,
         )
-        self.tissue_box = actor(
-            "023_tissue-box",
-            [0.00, 0.25, 0.741],
-            instance_name="tissue_box",
+        self.cafe_plant = actor(
+            "120_plant",
+            [0.34, 0.22, 0.741],
+            instance_name="cafe_plant",
             model_id=0,
             is_static=True,
         )
+        self.paper_wads = [
+            create_paper_wad(
+                scene=self,
+                pose=sapien.Pose([-0.02, -0.17, 0.77]),
+                name="paper_wad_1",
+            ),
+            create_paper_wad(
+                scene=self,
+                pose=sapien.Pose([0.04, -0.02, 0.77]),
+                name="paper_wad_2",
+            ),
+        ]
 
-        self._old_cup_recovered = [False, False]
-        self._seat_blocked_by_early_replacement = [False, False]
         self._stable_success_steps = 0
-        self.subgoal_vector = [False] * 6
+        self.subgoal_vector = [False] * 4
 
     def _transfer(self, item, arm_tag, target_pose, *, pre_dis=0.10):
         self.move(self.grasp_actor(item, arm_tag=arm_tag, pre_grasp_dis=0.08))
@@ -188,45 +167,31 @@ class cafe_table_reset(Base_Task):
     def play_once(self):
         """Diagnostic native expert; never use this as public-observation evidence."""
 
-        tray_z = float(self.tray.get_pose().p[2] + 0.055)
-        self._transfer(
-            self.old_cups[0],
-            "left",
-            sapien.Pose([-0.325, 0.10, tray_z], [0.5, 0.5, 0.5, 0.5]),
+        basket_z = float(self.waste_basket.get_pose().p[2] + 0.055)
+        targets = (*self.used_cups, *self.paper_wads)
+        placements = (
+            [-0.325, 0.13, basket_z],
+            [-0.255, 0.13, basket_z],
+            [-0.29, 0.105, basket_z + 0.035],
+            [-0.29, 0.155, basket_z + 0.035],
         )
-        self._transfer(
-            self.old_cups[1],
-            "right",
-            sapien.Pose([-0.215, 0.10, tray_z], [0.5, 0.5, 0.5, 0.5]),
-        )
-
-        for mug, arm_tag, center in zip(
-            self.replacement_mugs,
-            ("left", "right"),
-            SEAT_CENTERS_XY,
+        for target, arm_tag, position in zip(
+            targets,
+            ("left", "right", "left", "right"),
+            placements,
         ):
             self._transfer(
-                mug,
+                target,
                 arm_tag,
-                sapien.Pose([center[0], center[1], 0.741], [0.5, 0.5, 0.5, 0.5]),
-            )
-
-        basket_z = float(self.breadbasket.get_pose().p[2] + 0.055)
-        for bread, target_x in zip(self.breads, (-0.04, 0.04)):
-            self._transfer(
-                bread,
-                "right",
-                sapien.Pose([target_x, -0.15, basket_z], [0.5, 0.5, 0.5, 0.5]),
+                sapien.Pose(position, UPRIGHT_CUP_QUAT),
             )
 
         self.info["info"] = {
-            "{old_cup_a}": "021_cup/base6",
-            "{old_cup_b}": "021_cup/base6",
-            "{replacement_mug_1}": "039_mug/base3",
-            "{replacement_mug_2}": "039_mug/base3",
-            "{bread_1}": "075_bread/base1",
-            "{bread_2}": "075_bread/base1",
-            "task_id": "cafe_turnover_two_guests_v1",
+            "{upright_used_cup}": "021_cup/base6",
+            "{tipped_used_cup}": "021_cup/base6",
+            "{paper_wad_1}": "procedural_paper_wad",
+            "{paper_wad_2}": "procedural_paper_wad",
+            "task_id": "cafe_table_clearing_v2",
         }
         return self.info
 
@@ -259,37 +224,12 @@ class cafe_table_reset(Base_Task):
     def _supported(self, actor, support_name):
         return bool(self.check_actors_contact(actor.get_name(), support_name))
 
-    def _old_cup_goal(self, cup):
+    def _target_in_basket(self, target):
         return bool(
-            self._inside(cup, TRAY_CENTER_XY, TRAY_INTERIOR_HALF_XY)
-            and self._supported(cup, self.tray.get_name())
-            and self._stable(cup)
-            and self._unheld(cup)
-        )
-
-    def _mug_at_seat(self, mug, seat_center):
-        rotation = np.asarray(
-            mug.get_pose().to_transformation_matrix()[:3, :3], dtype=float
-        )
-        local_up_world = rotation[:, 1]
-        upright = bool(
-            np.dot(local_up_world, np.asarray([0.0, 0.0, 1.0]))
-            >= np.cos(np.deg2rad(MAX_MUG_TILT_DEG))
-        )
-        return bool(
-            self._inside(mug, seat_center, SEAT_INTERIOR_HALF_XY)
-            and self._supported(mug, "table")
-            and upright
-            and self._stable(mug)
-            and self._unheld(mug)
-        )
-
-    def _bread_goal(self, bread):
-        return bool(
-            self._inside(bread, BASKET_CENTER_XY, BASKET_INTERIOR_HALF_XY)
-            and self._supported(bread, self.breadbasket.get_name())
-            and self._stable(bread)
-            and self._unheld(bread)
+            self._inside(target, BASKET_CENTER_XY, BASKET_INTERIOR_HALF_XY)
+            and self._supported(target, self.waste_basket.get_name())
+            and self._stable(target)
+            and self._unheld(target)
         )
 
     def _arms_home(self):
@@ -305,41 +245,10 @@ class cafe_table_reset(Base_Task):
         )
 
     def check_success(self):
-        previous_recovery = tuple(self._old_cup_recovered)
-        old_goals = [self._old_cup_goal(cup) for cup in self.old_cups]
-
-        mug_seat_matrix = [
-            [self._mug_at_seat(mug, center) for mug in self.replacement_mugs]
-            for center in SEAT_CENTERS_XY
+        self.subgoal_vector = [
+            self._target_in_basket(target)
+            for target in (*self.used_cups, *self.paper_wads)
         ]
-        for seat_index, occupancy in enumerate(mug_seat_matrix):
-            occupied = any(occupancy)
-            if occupied and not previous_recovery[seat_index]:
-                self._seat_blocked_by_early_replacement[seat_index] = True
-            elif not occupied:
-                self._seat_blocked_by_early_replacement[seat_index] = False
-
-        seat_goals = [
-            bool(
-                previous_recovery[index]
-                and not self._seat_blocked_by_early_replacement[index]
-                and sum(mug_seat_matrix[index]) == 1
-            )
-            for index in range(2)
-        ]
-        mugs_used_once = all(
-            sum(mug_seat_matrix[seat][mug] for seat in range(2)) == 1
-            for mug in range(2)
-        )
-        if not mugs_used_once:
-            seat_goals = [False, False]
-
-        self._old_cup_recovered = [
-            previous_recovery[index] or old_goals[index] for index in range(2)
-        ]
-        bread_goals = [self._bread_goal(bread) for bread in self.breads]
-        self.subgoal_vector = old_goals + seat_goals + bread_goals
-
         final_state = bool(
             all(self.subgoal_vector)
             and self.robot.is_left_gripper_open()
