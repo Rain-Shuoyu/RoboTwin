@@ -10,6 +10,7 @@ from .utils import *
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 
+TASK_ID = "cafe_table_reset_coasters_v4"
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 UPRIGHT_CUP_QUAT = (0.5, 0.5, 0.5, 0.5)
 TIPPED_CUP_QUAT = (0.0, 2**-0.5, 0.0, 2**-0.5)
@@ -224,7 +225,7 @@ class cafe_table_reset(Base_Task):
             "{paper_wad_2}": "procedural_paper_wad",
             "{waste_basket}": "076_breadbasket/base0",
             "{coffee_machine}": "900_coffee_machine/base0",
-            "task_id": "cafe_table_reset_coasters_v3",
+            "task_id": TASK_ID,
         }
         return self.info
 
