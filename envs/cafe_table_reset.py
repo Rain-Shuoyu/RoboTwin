@@ -10,13 +10,13 @@ from .utils import *
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 
-TASK_ID = "cafe_table_reset_coasters_v8"
+TASK_ID = "cafe_table_reset_coasters_v9"
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 UPRIGHT_CUP_QUAT = (0.5, 0.5, 0.5, 0.5)
 TIPPED_CUP_QUAT = (0.0, 2**-0.5, 0.0, 2**-0.5)
 COFFEE_MACHINE_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
 WASTE_BOX_CAMERA_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
-HANDLELESS_CUP_SCALE_MULTIPLIER = 0.70
+CLEAN_CUP_SCALE_MULTIPLIER = 1.0
 DIRTY_CUP_SCALE_MULTIPLIER = 0.8
 WASTE_BOX_SCALE_MULTIPLIER = 0.65
 
@@ -86,8 +86,8 @@ class cafe_table_reset(Base_Task):
                 "021_cup",
                 [COASTER_CENTER_XY[0], COASTER_CENTER_XY[1], 0.749],
                 instance_name="handleless_clean_cup",
-                model_id=4,
-                scale_multiplier=HANDLELESS_CUP_SCALE_MULTIPLIER,
+                model_id=0,
+                scale_multiplier=CLEAN_CUP_SCALE_MULTIPLIER,
             ),
             actor(
                 "901_dirty_coffee_cup",
@@ -157,7 +157,7 @@ class cafe_table_reset(Base_Task):
         )
 
         self.info["info"] = {
-            "{handleless_clean_cup}": "021_cup/base4",
+            "{handleless_clean_cup}": "021_cup/base0",
             "{tipped_used_cup}": "901_dirty_coffee_cup/base0",
             "{wall_coaster}": "019_coaster/base0",
             "{waste_basket}": "902_dirty_waste_box/base0",
