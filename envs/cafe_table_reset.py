@@ -10,19 +10,17 @@ from .utils import *
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 
-TASK_ID = "cafe_table_reset_coasters_v7"
+TASK_ID = "cafe_table_reset_coasters_v8"
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 UPRIGHT_CUP_QUAT = (0.5, 0.5, 0.5, 0.5)
 TIPPED_CUP_QUAT = (0.0, 2**-0.5, 0.0, 2**-0.5)
 COFFEE_MACHINE_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
 WASTE_BOX_CAMERA_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
-UPRIGHT_CUP_SCALE_MULTIPLIER = 1.5
+HANDLELESS_CUP_SCALE_MULTIPLIER = 0.70
 DIRTY_CUP_SCALE_MULTIPLIER = 0.8
 WASTE_BOX_SCALE_MULTIPLIER = 0.65
 
 WASTE_BOX_CENTER_XY = np.asarray([-0.30, 0.16])
-WASTE_BOX_INTERIOR_HALF_XY = np.asarray([0.075, 0.075])
-WASTE_BOX_RIM_HEIGHT_M = 0.089
 WASTE_BOX_COLLISION_BOXES = (
     ((0.0005, 0.0040, -0.0036), (0.1000, 0.0040, 0.1000)),
     ((-0.0955, 0.0445, -0.0036), (0.0040, 0.0445, 0.1000)),
@@ -33,13 +31,6 @@ WASTE_BOX_COLLISION_BOXES = (
 COASTER_CENTER_XY = np.asarray([-0.04, 0.23])
 COASTER_INTERIOR_HALF_XY = np.asarray([0.055, 0.055])
 
-PAPER_LOBES = (
-    ((-0.006, 0.000, 0.000), 0.018),
-    ((0.007, 0.003, 0.002), 0.016),
-    ((0.000, -0.007, 0.005), 0.015),
-    ((0.003, 0.006, -0.004), 0.014),
-)
-
 MAX_LINEAR_SPEED_M_S = 0.05
 MAX_ANGULAR_SPEED_RAD_S = 0.5
 MAX_UPRIGHT_ANGLE_DEG = 20.0
@@ -47,44 +38,8 @@ HOME_TOLERANCE_RAD = 0.05
 STABLE_SUCCESS_STEPS = 250
 
 
-def create_paper_wad(*, scene, pose, name):
-    """Create one lightweight, irregular, graspable paper-wad actor."""
-
-    native_scene, pose = preprocess(scene, pose)
-    builder = native_scene.create_actor_builder()
-    builder.set_physx_body_type("dynamic")
-    material = sapien.render.RenderMaterial(base_color=[0.93, 0.91, 0.86, 1.0])
-    for offset, radius in PAPER_LOBES:
-        local_pose = sapien.Pose(offset)
-        builder.add_sphere_collision(
-            pose=local_pose,
-            radius=radius,
-            material=native_scene.default_physical_material,
-        )
-        builder.add_sphere_visual(
-            pose=local_pose,
-            radius=radius,
-            material=material,
-        )
-    builder.set_initial_pose(pose)
-    entity = builder.build(name=name)
-
-    actor_data = {
-        "center": [0, 0, 0],
-        "extents": [0.026, 0.026, 0.026],
-        "scale": [0.026, 0.026, 0.026],
-        "target_pose": [np.eye(4).tolist()],
-        "contact_points_pose": [np.eye(4).tolist()],
-        "functional_matrix": [np.eye(4).tolist()],
-        "contact_points_description": ["The exposed surface of the paper wad."],
-        "contact_points_group": [[0]],
-        "contact_points_mask": [True],
-    }
-    return Actor(entity, actor_data, mass=0.015)
-
-
 class cafe_table_reset(Base_Task):
-    """Keep one staged cup on its coaster and clear two paper wads."""
+    """Keep one staged handleless cup on its coaster."""
 
     def setup_demo(self, **kwargs):
         kwargs = kwargs.copy()
@@ -130,9 +85,9 @@ class cafe_table_reset(Base_Task):
             actor(
                 "021_cup",
                 [COASTER_CENTER_XY[0], COASTER_CENTER_XY[1], 0.749],
-                instance_name="upright_used_cup",
-                model_id=6,
-                scale_multiplier=UPRIGHT_CUP_SCALE_MULTIPLIER,
+                instance_name="handleless_clean_cup",
+                model_id=4,
+                scale_multiplier=HANDLELESS_CUP_SCALE_MULTIPLIER,
             ),
             actor(
                 "901_dirty_coffee_cup",
@@ -172,21 +127,8 @@ class cafe_table_reset(Base_Task):
             convex=False,
             quat=COFFEE_MACHINE_QUAT,
         )
-        self.paper_wads = [
-            create_paper_wad(
-                scene=self,
-                pose=sapien.Pose([-0.02, -0.17, 0.77]),
-                name="paper_wad_1",
-            ),
-            create_paper_wad(
-                scene=self,
-                pose=sapien.Pose([0.04, -0.02, 0.77]),
-                name="paper_wad_2",
-            ),
-        ]
-
         self._stable_success_steps = 0
-        self.subgoal_vector = [False] * 3
+        self.subgoal_vector = [False]
 
     def _transfer(self, item, arm_tag, target_pose, *, pre_dis=0.10):
         self.move(self.grasp_actor(item, arm_tag=arm_tag, pre_grasp_dis=0.08))
@@ -214,30 +156,10 @@ class cafe_table_reset(Base_Task):
             sapien.Pose(position, UPRIGHT_CUP_QUAT),
         )
 
-        basket_z = float(
-            self.waste_basket.get_pose().p[2] + WASTE_BOX_RIM_HEIGHT_M
-        )
-        placements = (
-            [-0.32, 0.145, basket_z + 0.035],
-            [-0.28, 0.175, basket_z + 0.035],
-        )
-        for target, arm_tag, position in zip(
-            self.paper_wads,
-            ("left", "right"),
-            placements,
-        ):
-            self._transfer(
-                target,
-                arm_tag,
-                sapien.Pose(position, UPRIGHT_CUP_QUAT),
-            )
-
         self.info["info"] = {
-            "{upright_used_cup}": "021_cup/base6",
+            "{handleless_clean_cup}": "021_cup/base4",
             "{tipped_used_cup}": "901_dirty_coffee_cup/base0",
             "{wall_coaster}": "019_coaster/base0",
-            "{paper_wad_1}": "procedural_paper_wad",
-            "{paper_wad_2}": "procedural_paper_wad",
             "{waste_basket}": "902_dirty_waste_box/base0",
             "{coffee_machine}": "900_coffee_machine/base0",
             "task_id": TASK_ID,
@@ -272,18 +194,6 @@ class cafe_table_reset(Base_Task):
 
     def _supported(self, actor, support_name):
         return bool(self.check_actors_contact(actor.get_name(), support_name))
-
-    def _target_in_basket(self, target):
-        return bool(
-            self._inside(
-                target,
-                WASTE_BOX_CENTER_XY,
-                WASTE_BOX_INTERIOR_HALF_XY,
-            )
-            and self._supported(target, self.waste_basket.get_name())
-            and self._stable(target)
-            and self._unheld(target)
-        )
 
     @staticmethod
     def _upright(actor):
@@ -326,10 +236,7 @@ class cafe_table_reset(Base_Task):
             self.used_cups[0],
             self.coasters[0],
         )
-        paper_goals = [
-            self._target_in_basket(target) for target in self.paper_wads
-        ]
-        self.subgoal_vector = [coaster_goal, *paper_goals]
+        self.subgoal_vector = [coaster_goal]
         final_state = bool(
             all(self.subgoal_vector)
             and self.robot.is_left_gripper_open()
