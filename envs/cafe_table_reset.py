@@ -21,13 +21,6 @@ DIRTY_CUP_SCALE_MULTIPLIER = 0.8
 WASTE_BOX_SCALE_MULTIPLIER = 0.65
 
 WASTE_BOX_CENTER_XY = np.asarray([-0.30, 0.16])
-WASTE_BOX_COLLISION_BOXES = (
-    ((0.0005, 0.0040, -0.0036), (0.1000, 0.0040, 0.1000)),
-    ((-0.0955, 0.0445, -0.0036), (0.0040, 0.0445, 0.1000)),
-    ((0.0965, 0.0445, -0.0036), (0.0040, 0.0445, 0.1000)),
-    ((0.0005, 0.0445, -0.0996), (0.0920, 0.0445, 0.0040)),
-    ((0.0005, 0.0445, 0.0924), (0.0920, 0.0445, 0.0040)),
-)
 COASTER_CENTER_XY = np.asarray([-0.04, 0.23])
 COASTER_INTERIOR_HALF_XY = np.asarray([0.055, 0.055])
 
@@ -64,7 +57,6 @@ class cafe_table_reset(Base_Task):
             quat=UPRIGHT_CUP_QUAT,
             convex=True,
             scale_multiplier=1.0,
-            collision_boxes=None,
         ):
             result = create_actor(
                 scene=self,
@@ -74,7 +66,6 @@ class cafe_table_reset(Base_Task):
                 model_id=model_id,
                 is_static=is_static,
                 scale_multiplier=scale_multiplier,
-                collision_boxes=collision_boxes,
             )
             result.set_name(instance_name)
             if not is_static:
@@ -104,10 +95,9 @@ class cafe_table_reset(Base_Task):
             instance_name="waste_basket",
             model_id=0,
             is_static=True,
-            convex=False,
+            convex=True,
             quat=WASTE_BOX_CAMERA_QUAT,
             scale_multiplier=WASTE_BOX_SCALE_MULTIPLIER,
-            collision_boxes=WASTE_BOX_COLLISION_BOXES,
         )
         self.coasters = [
             actor(
@@ -124,7 +114,7 @@ class cafe_table_reset(Base_Task):
             instance_name="coffee_machine",
             model_id=0,
             is_static=True,
-            convex=False,
+            convex=True,
             quat=COFFEE_MACHINE_QUAT,
         )
         self._stable_success_steps = 0
