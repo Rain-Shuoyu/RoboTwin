@@ -10,7 +10,7 @@ from .utils import *
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 
-TASK_ID = "cafe_table_reset_coasters_v9"
+TASK_ID = "cafe_table_reset_layout_v1"
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 UPRIGHT_CUP_QUAT = (0.5, 0.5, 0.5, 0.5)
 TIPPED_CUP_QUAT = (0.0, 2**-0.5, 0.0, 2**-0.5)
@@ -18,10 +18,15 @@ COFFEE_MACHINE_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
 WASTE_BOX_CAMERA_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
 CLEAN_CUP_SCALE_MULTIPLIER = 1.0
 DIRTY_CUP_SCALE_MULTIPLIER = 0.8
-WASTE_BOX_SCALE_MULTIPLIER = 0.65
+WASTE_BOX_SCALE_MULTIPLIER = 1.30
 
-WASTE_BOX_CENTER_XY = np.asarray([-0.30, 0.16])
-COASTER_CENTER_XY = np.asarray([-0.04, 0.23])
+WASTE_BOX_CENTER_XY = np.asarray([0.35, 0.10])
+COASTER_CENTER_XY = np.asarray([-0.32, -0.20])
+COFFEE_MACHINE_CENTER_XY = np.asarray([0.0, 0.0])
+DIRTY_CUP_CENTER_XY = np.asarray([0.35, -0.23])
+SERVING_MAT_CENTER_XY = np.asarray([-0.34, 0.14])
+SERVING_MAT_HALF_SIZE = (0.16, 0.12, 0.002)
+SERVING_MAT_COLOR = (0.12, 0.045, 0.018)
 COASTER_INTERIOR_HALF_XY = np.asarray([0.055, 0.055])
 
 MAX_LINEAR_SPEED_M_S = 0.05
@@ -82,7 +87,7 @@ class cafe_table_reset(Base_Task):
             ),
             actor(
                 "901_dirty_coffee_cup",
-                [0.14, -0.10, 0.79],
+                [DIRTY_CUP_CENTER_XY[0], DIRTY_CUP_CENTER_XY[1], 0.79],
                 instance_name="tipped_used_cup",
                 model_id=0,
                 quat=TIPPED_CUP_QUAT,
@@ -110,12 +115,20 @@ class cafe_table_reset(Base_Task):
         ]
         self.coffee_machine = actor(
             "900_coffee_machine",
-            [0.20, 0.16, 0.741],
+            [COFFEE_MACHINE_CENTER_XY[0], COFFEE_MACHINE_CENTER_XY[1], 0.741],
             instance_name="coffee_machine",
             model_id=0,
             is_static=True,
             convex=True,
             quat=COFFEE_MACHINE_QUAT,
+        )
+        self.serving_mat = create_box(
+            scene=self,
+            pose=sapien.Pose([*SERVING_MAT_CENTER_XY, 0.74 + SERVING_MAT_HALF_SIZE[2]]),
+            half_size=SERVING_MAT_HALF_SIZE,
+            color=SERVING_MAT_COLOR,
+            is_static=True,
+            name="serving_mat",
         )
         self._stable_success_steps = 0
         self.subgoal_vector = [False]
