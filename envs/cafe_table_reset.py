@@ -10,7 +10,7 @@ from .utils import *
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 
-TASK_ID = "cafe_table_reset_layout_v4"
+TASK_ID = "cafe_table_reset_layout_v5"
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 UPRIGHT_CUP_QUAT = (0.5, 0.5, 0.5, 0.5)
 TIPPED_CUP_QUAT = (0.0, 2**-0.5, 0.0, 2**-0.5)
@@ -32,6 +32,8 @@ SERVING_TRAY_SCALE_MULTIPLIER = 1.2 ** (1.0 / 3.0)
 # 008_tray/base3 collision bottom, native scale 0.16, +90 deg X.
 SERVING_TRAY_ORIGIN_Z = 0.74 - (-0.017406228929758072 * 0.16 * SERVING_TRAY_SCALE_MULTIPLIER)
 SERVING_TRAY_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
+TICKET_CLIP_CENTER_XY = np.asarray([-0.541, -0.048])
+TICKET_CLIP_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
 COASTER_INTERIOR_HALF_XY = np.asarray([0.055, 0.055])
 
 MAX_LINEAR_SPEED_M_S = 0.05
@@ -67,6 +69,7 @@ class cafe_table_reset(Base_Task):
             quat=UPRIGHT_CUP_QUAT,
             convex=True,
             scale_multiplier=1.0,
+            contact_offset_m=None,
         ):
             result = create_actor(
                 scene=self,
@@ -77,6 +80,11 @@ class cafe_table_reset(Base_Task):
                 is_static=is_static,
                 scale_multiplier=scale_multiplier,
             )
+            if contact_offset_m is not None:
+                for component in result.actor.get_components():
+                    if isinstance(component, sapien.physx.PhysxRigidBaseComponent):
+                        for shape in component.collision_shapes:
+                            shape.contact_offset = contact_offset_m
             result.set_name(instance_name)
             if not is_static:
                 result.set_mass(mass)
@@ -135,6 +143,14 @@ class cafe_table_reset(Base_Task):
             is_static=True,
             quat=SERVING_TRAY_QUAT,
             scale_multiplier=SERVING_TRAY_SCALE_MULTIPLIER,
+        )
+        self.ticket_clip = actor(
+            "903_ticket_clip",
+            [*TICKET_CLIP_CENTER_XY, 0.741],
+            instance_name="ticket_clip",
+            model_id=0,
+            quat=TICKET_CLIP_QUAT,
+            contact_offset_m=0.001,
         )
         self._stable_success_steps = 0
         self.subgoal_vector = [False]
