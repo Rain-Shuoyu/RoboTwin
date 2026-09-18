@@ -10,7 +10,7 @@ from .utils import *
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 
-TASK_ID = "cafe_table_reset_layout_v2"
+TASK_ID = "cafe_table_reset_layout_v3"
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 UPRIGHT_CUP_QUAT = (0.5, 0.5, 0.5, 0.5)
 TIPPED_CUP_QUAT = (0.0, 2**-0.5, 0.0, 2**-0.5)
@@ -26,9 +26,10 @@ COASTER_CENTER_XY = np.asarray([-0.32, -0.20])
 # Align rendered rear edge with the 0.7 m table rear, not collision proxy.
 COFFEE_MACHINE_CENTER_XY = np.asarray([0.0, 0.35 - 0.222116])
 DIRTY_CUP_CENTER_XY = np.asarray([0.35, -0.23])
-SERVING_MAT_CENTER_XY = np.asarray([-0.34, 0.14])
-SERVING_MAT_HALF_SIZE = (0.16, 0.12, 0.002)
-SERVING_MAT_COLOR = (0.12, 0.045, 0.018)
+SERVING_TRAY_CENTER_XY = np.asarray([-0.34, 0.14])
+# 008_tray/base3 collision bottom, at its native 0.16 scale and +90 deg X.
+SERVING_TRAY_ORIGIN_Z = 0.74 - (-0.017406228929758072 * 0.16)
+SERVING_TRAY_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
 COASTER_INTERIOR_HALF_XY = np.asarray([0.055, 0.055])
 
 MAX_LINEAR_SPEED_M_S = 0.05
@@ -124,13 +125,13 @@ class cafe_table_reset(Base_Task):
             convex=True,
             quat=COFFEE_MACHINE_QUAT,
         )
-        self.serving_mat = create_box(
-            scene=self,
-            pose=sapien.Pose([*SERVING_MAT_CENTER_XY, 0.74 + SERVING_MAT_HALF_SIZE[2]]),
-            half_size=SERVING_MAT_HALF_SIZE,
-            color=SERVING_MAT_COLOR,
+        self.serving_tray = actor(
+            "008_tray",
+            [*SERVING_TRAY_CENTER_XY, SERVING_TRAY_ORIGIN_Z],
+            instance_name="serving_tray",
+            model_id=3,
             is_static=True,
-            name="serving_mat",
+            quat=SERVING_TRAY_QUAT,
         )
         self._stable_success_steps = 0
         self.subgoal_vector = [False]
