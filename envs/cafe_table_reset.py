@@ -10,7 +10,7 @@ from .utils import *
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 
-TASK_ID = "cafe_table_reset_layout_v8"
+TASK_ID = "cafe_table_reset_layout_v9"
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 UPRIGHT_CUP_QUAT = (0.5, 0.5, 0.5, 0.5)
 DIRTY_CUP_UPRIGHT_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
@@ -26,13 +26,13 @@ COASTER_CENTER_XY = np.asarray([-0.32, -0.20])
 # Align rendered rear edge with the 0.7 m table rear, not collision proxy.
 COFFEE_MACHINE_CENTER_XY = np.asarray([0.0, 0.35 - 0.222116])
 DIRTY_CUP_CENTER_XY = np.asarray([0.35, -0.23])
-SERVING_TRAY_CENTER_XY = np.asarray([-0.34, 0.11])
+SERVING_TRAY_CENTER_XY = np.asarray([-0.34, -0.04])
 # A 1.2x volume increase means cube-root scaling along each axis.
 SERVING_TRAY_SCALE_MULTIPLIER = 1.2 ** (1.0 / 3.0)
 # 008_tray/base3 collision bottom, native scale 0.16, +90 deg X.
 SERVING_TRAY_ORIGIN_Z = 0.74 - (-0.017406228929758072 * 0.16 * SERVING_TRAY_SCALE_MULTIPLIER)
 SERVING_TRAY_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
-TICKET_CLIP_CENTER_XY = np.asarray([-0.541, -0.048])
+TICKET_CLIP_CENTER_XY = np.asarray([-0.56, -0.04])
 TICKET_CLIP_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
 PICKUP_SIGN_CENTER_XY = np.asarray([-0.505, 0.315])
 PICKUP_SIGN_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
