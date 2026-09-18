@@ -10,7 +10,7 @@ from .utils import *
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 
-TASK_ID = "cafe_table_reset_layout_v7"
+TASK_ID = "cafe_table_reset_layout_v8"
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 UPRIGHT_CUP_QUAT = (0.5, 0.5, 0.5, 0.5)
 DIRTY_CUP_UPRIGHT_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
@@ -46,7 +46,7 @@ STABLE_SUCCESS_STEPS = 250
 
 
 class cafe_table_reset(Base_Task):
-    """Keep one staged handleless cup on its coaster."""
+    """Keep one staged service mug on its coaster."""
 
     def setup_demo(self, **kwargs):
         kwargs = kwargs.copy()
@@ -94,10 +94,10 @@ class cafe_table_reset(Base_Task):
 
         self.used_cups = [
             actor(
-                "021_cup",
+                "039_mug",
                 [COASTER_CENTER_XY[0], COASTER_CENTER_XY[1], 0.749],
                 instance_name="handleless_clean_cup",
-                model_id=0,
+                model_id=3,
                 scale_multiplier=CLEAN_CUP_SCALE_MULTIPLIER,
             ),
             actor(
@@ -205,7 +205,7 @@ class cafe_table_reset(Base_Task):
         )
 
         self.info["info"] = {
-            "{handleless_clean_cup}": "021_cup/base0",
+            "{handleless_clean_cup}": "039_mug/base3",
             "{tipped_used_cup}": "901_dirty_coffee_cup/base0",
             "{wall_coaster}": "019_coaster/base0",
             "{waste_basket}": "902_dirty_waste_box/base0",
