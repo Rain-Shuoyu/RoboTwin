@@ -10,7 +10,7 @@ from .utils import *
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 
-TASK_ID = "cafe_table_reset_layout_v9"
+TASK_ID = "cafe_table_reset_layout_v10"
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 UPRIGHT_CUP_QUAT = (0.5, 0.5, 0.5, 0.5)
 DIRTY_CUP_UPRIGHT_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
@@ -21,7 +21,7 @@ DIRTY_CUP_SCALE_MULTIPLIER = 0.8
 WASTE_BOX_SCALE_MULTIPLIER = 1.30
 
 WASTE_BOX_CENTER_XY = np.asarray([0.35, 0.10])
-COASTER_CENTER_XY = np.asarray([-0.32, -0.20])
+COASTER_CENTER_XY = np.asarray([0.0, -0.20])
 # Visual rear offset: model Z min -0.444232, scale 0.5, +90 deg X.
 # Align rendered rear edge with the 0.7 m table rear, not collision proxy.
 COFFEE_MACHINE_CENTER_XY = np.asarray([0.0, 0.35 - 0.222116])
