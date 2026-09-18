@@ -664,3 +664,30 @@ def create_sapien_urdf_obj(
             model_data["extents"] = (np.array(bounding_box["max"]) - np.array(bounding_box["min"])).tolist()
     object.set_name(modelname)
     return ArticulationActor(object, model_data)
+
+
+def create_surface_patch(scene, pose, outline, color, name):
+    """Render a flat star-shaped patch; outline is counterclockwise around zero.
+
+    This entity has no collision component, so a stain cannot prop up an object.
+    """
+    scene, pose = preprocess(scene, pose)
+    outline = np.asarray(outline, dtype=np.float32)
+    count = len(outline)
+    vertices = np.zeros((count + 1, 3), dtype=np.float32)
+    vertices[1:, :2] = outline
+    triangles = np.asarray([[0, i + 1, (i + 1) % count + 1]
+                            for i in range(count)], dtype=np.uint32)
+    normals = np.tile(np.asarray([0, 0, 1], dtype=np.float32), (count + 1, 1))
+    material = sapien.render.RenderMaterial(base_color=[*color, 1], roughness=0.9)
+    shape = sapien.render.RenderShapeTriangleMesh(
+        vertices, triangles, normals, np.zeros((count + 1, 2), dtype=np.float32), material
+    )
+    body = sapien.render.RenderBodyComponent()
+    body.attach(shape)
+    entity = sapien.Entity()
+    entity.name = name
+    entity.add_component(body)
+    entity.set_pose(pose)
+    scene.add_entity(entity)
+    return entity

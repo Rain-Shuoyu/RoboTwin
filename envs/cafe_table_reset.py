@@ -10,10 +10,10 @@ from .utils import *
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 
-TASK_ID = "cafe_table_reset_layout_v6"
+TASK_ID = "cafe_table_reset_layout_v7"
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 UPRIGHT_CUP_QUAT = (0.5, 0.5, 0.5, 0.5)
-TIPPED_CUP_QUAT = (0.0, 2**-0.5, 0.0, 2**-0.5)
+DIRTY_CUP_UPRIGHT_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
 COFFEE_MACHINE_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
 WASTE_BOX_CAMERA_QUAT = (2**-0.5, 2**-0.5, 0.0, 0.0)
 CLEAN_CUP_SCALE_MULTIPLIER = 1.0
@@ -102,10 +102,10 @@ class cafe_table_reset(Base_Task):
             ),
             actor(
                 "901_dirty_coffee_cup",
-                [DIRTY_CUP_CENTER_XY[0], DIRTY_CUP_CENTER_XY[1], 0.79],
+                [DIRTY_CUP_CENTER_XY[0], DIRTY_CUP_CENTER_XY[1], 0.741],
                 instance_name="tipped_used_cup",
                 model_id=0,
-                quat=TIPPED_CUP_QUAT,
+                quat=DIRTY_CUP_UPRIGHT_QUAT,
                 scale_multiplier=DIRTY_CUP_SCALE_MULTIPLIER,
             ),
         ]
@@ -162,6 +162,18 @@ class cafe_table_reset(Base_Task):
             mass=0.03,
             quat=PICKUP_SIGN_QUAT,
             contact_offset_m=0.001,
+        )
+        angles = np.linspace(0, 2 * np.pi, 96, endpoint=False)
+        radius = 1 + 0.10 * np.sin(3 * angles + 0.4) + 0.06 * np.cos(5 * angles)
+        outline = np.column_stack((0.095 * radius * np.cos(angles),
+                                   0.070 * radius * np.sin(angles)))
+        self.coffee_stain = create_surface_patch(
+            scene=self, pose=sapien.Pose([*DIRTY_CUP_CENTER_XY, 0.74015]),
+            outline=outline, color=(0.20, 0.075, 0.023), name="coffee_stain",
+        )
+        self.coffee_stain_inner = create_surface_patch(
+            scene=self, pose=sapien.Pose([*DIRTY_CUP_CENTER_XY, 0.74018]),
+            outline=outline * 0.94, color=(0.095, 0.032, 0.009), name="coffee_stain_inner",
         )
         self._stable_success_steps = 0
         self.subgoal_vector = [False]
