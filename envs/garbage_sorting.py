@@ -11,8 +11,8 @@ from .utils import *
 
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
-TASK_ID = "garbage_sorting_preview_v2"
-TASK_REVISION = 2
+TASK_ID = "garbage_sorting_preview_v3"
+TASK_REVISION = 3
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 TABLE_TOP_Z = 0.74
 BIN_THICKNESS = 0.01
@@ -49,7 +49,7 @@ BIN_SPECS = (
         "source_bin",
         "unsorted",
         (0.0, -0.16),
-        (0.50, 0.27, 0.11),
+        (0.50, 0.27, 0.16),
         (0.67, 0.58, 0.45),
     ),
     BinSpec(
