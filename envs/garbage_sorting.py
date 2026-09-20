@@ -11,7 +11,8 @@ from .utils import *
 
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
-TASK_ID = "garbage_sorting_preview_v1"
+TASK_ID = "garbage_sorting_preview_v2"
+TASK_REVISION = 2
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 TABLE_TOP_Z = 0.74
 BIN_THICKNESS = 0.01
@@ -110,9 +111,9 @@ TRASH_INVENTORY = (
         ROTATE_STANDARD_UP,
     ),
     TrashSpec(
-        "plastic_bottle",
-        "114_bottle",
-        4,
+        "sprite_bottle",
+        "001_bottle",
+        16,
         "recyclable",
         0.03,
         ROTATE_LOCAL_Y_UP,
@@ -314,6 +315,7 @@ class garbage_sorting(Base_Task):
                 for name, metadata in object_metadata.items()
             },
             "task_id": TASK_ID,
+            "task_revision": TASK_REVISION,
             "preview_only": True,
             "objects": object_metadata,
         }
