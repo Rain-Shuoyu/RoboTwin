@@ -11,8 +11,8 @@ from .utils import *
 
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
-TASK_ID = "garbage_sorting_preview_v4"
-TASK_REVISION = 4
+TASK_ID = "garbage_sorting_preview_v5"
+TASK_REVISION = 5
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 TABLE_TOP_Z = 0.74
 BIN_THICKNESS = 0.01
@@ -110,14 +110,6 @@ TRASH_INVENTORY = (
         "recyclable",
         0.03,
         ROTATE_STANDARD_UP,
-    ),
-    TrashSpec(
-        "sprite_bottle",
-        "001_bottle",
-        16,
-        "recyclable",
-        0.03,
-        ROTATE_LOCAL_Y_UP,
     ),
     TrashSpec(
         "drink_can",
