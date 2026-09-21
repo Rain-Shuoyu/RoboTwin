@@ -11,11 +11,12 @@ from .utils import *
 
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
-TASK_ID = "garbage_sorting_preview_v3"
-TASK_REVISION = 3
+TASK_ID = "garbage_sorting_preview_v4"
+TASK_REVISION = 4
 WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
 TABLE_TOP_Z = 0.74
 BIN_THICKNESS = 0.01
+RELEASE_SETTLE_STEPS = 250
 
 
 @dataclass(frozen=True)
@@ -49,7 +50,7 @@ BIN_SPECS = (
         "source_bin",
         "unsorted",
         (0.0, -0.16),
-        (0.50, 0.27, 0.16),
+        (0.50, 0.27, 0.11),
         (0.67, 0.58, 0.45),
     ),
     BinSpec(
@@ -297,6 +298,8 @@ class garbage_sorting(Base_Task):
                 "category": item.category,
                 "mass_kg": item.mass_kg,
             }
+            for _ in range(RELEASE_SETTLE_STEPS):
+                self.scene.step()
         self.trash_actors = self.trash_objects
 
     def play_once(self):
