@@ -11,20 +11,25 @@ from .utils import *
 
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
-TASK_ID = "garbage_sorting_preview_v5"
-TASK_REVISION = 5
-WOOD_TABLE_COLOR = (0.42, 0.23, 0.10)
+TASK_ID = "garbage_sorting_preview_v6"
+TASK_REVISION = 6
+TABLE_COLOR = (0.72, 0.72, 0.72)
 TABLE_TOP_Z = 0.74
 BIN_THICKNESS = 0.01
 RELEASE_SETTLE_STEPS = 250
+MAT_CENTER_XY = (0.0, -0.13)
+MAT_SIZE = (1.02, 0.34, 0.005)
+MAT_COLOR = (0.18, 0.18, 0.18)
+TRAY_CENTER_XY = (0.0, 0.21)
+TRAY_SIZE = (1.17, 0.24, 0.11)
+DIVIDER_COLOR = (0.18, 0.18, 0.18)
 
 
 @dataclass(frozen=True)
-class BinSpec:
+class SortingZone:
     name: str
     meaning: str
-    center_xy: tuple[float, float]
-    outer_size: tuple[float, float, float]
+    center_x: float
     color: tuple[float, float, float]
 
 
@@ -45,33 +50,23 @@ class SpawnSpec:
     quaternion_wxyz: tuple[float, float, float, float]
 
 
-BIN_SPECS = (
-    BinSpec(
-        "source_bin",
-        "unsorted",
-        (0.0, -0.16),
-        (0.50, 0.27, 0.11),
-        (0.67, 0.58, 0.45),
-    ),
-    BinSpec(
-        "recyclable_bin",
+SORTING_ZONES = (
+    SortingZone(
         "recyclable",
-        (-0.39, 0.245),
-        (0.23, 0.17, 0.11),
+        "recyclable",
+        -0.39,
         (0.12, 0.55, 0.25),
     ),
-    BinSpec(
-        "other_bin",
+    SortingZone(
         "other",
-        (0.0, 0.245),
-        (0.23, 0.17, 0.11),
+        "other",
+        0.0,
         (0.38, 0.38, 0.38),
     ),
-    BinSpec(
-        "hazardous_bin",
+    SortingZone(
         "hazardous",
-        (0.39, 0.245),
-        (0.23, 0.17, 0.11),
+        "hazardous",
+        0.39,
         (0.95, 0.40, 0.08),
     ),
 )
@@ -122,11 +117,11 @@ TRASH_INVENTORY = (
 )
 
 SPAWN_SLOTS = (
-    (-0.15, -0.22, 0.91),
-    (0.00, -0.22, 0.91),
-    (0.15, -0.22, 0.91),
-    (-0.10, -0.11, 1.00),
-    (0.10, -0.11, 1.00),
+    (-0.34, -0.20, 0.91),
+    (0.00, -0.20, 0.91),
+    (0.34, -0.20, 0.91),
+    (-0.18, -0.02, 0.91),
+    (0.18, -0.02, 0.91),
 )
 
 
@@ -164,71 +159,122 @@ def sample_spawn_specs(rng):
     order = tuple(int(index) for index in rng.permutation(len(TRASH_INVENTORY)))
     result = []
     for slot, inventory_index in zip(SPAWN_SLOTS, order):
-        jitter = rng.uniform(
-            (-0.015, -0.012, -0.008),
-            (0.015, 0.012, 0.008),
-        )
-        roll, pitch = rng.uniform(-np.pi / 5, np.pi / 5, size=2)
+        jitter_xy = rng.uniform(-0.008, 0.008, size=2)
         yaw = float(rng.uniform(-np.pi, np.pi))
-        delta = _euler_quaternion(float(roll), float(pitch), yaw)
+        delta = _euler_quaternion(0.0, 0.0, yaw)
         quaternion = _quaternion_multiply(
             delta,
             TRASH_INVENTORY[inventory_index].base_quaternion_wxyz,
         )
         quaternion /= np.linalg.norm(quaternion)
-        position = np.asarray(slot, dtype=float) + jitter
+        position = (
+            slot[0] + float(jitter_xy[0]),
+            slot[1] + float(jitter_xy[1]),
+            slot[2],
+        )
         result.append(
             SpawnSpec(
                 trash=TRASH_INVENTORY[inventory_index],
-                position=tuple(float(value) for value in position),
+                position=position,
                 quaternion_wxyz=tuple(float(value) for value in quaternion),
             )
         )
     return tuple(result)
 
 
-def create_open_bin(scene, spec):
-    x, y = spec.center_xy
-    width, depth, height = spec.outer_size
+def create_placement_mat(scene):
+    return create_box(
+        scene=scene,
+        pose=sapien.Pose(
+            (
+                MAT_CENTER_XY[0],
+                MAT_CENTER_XY[1],
+                TABLE_TOP_Z + MAT_SIZE[2] / 2,
+            )
+        ),
+        half_size=(MAT_SIZE[0] / 2, MAT_SIZE[1] / 2, MAT_SIZE[2] / 2),
+        color=MAT_COLOR,
+        is_static=True,
+        name="placement_mat",
+    )
+
+
+def create_sorting_tray(scene):
+    x, y = TRAY_CENTER_XY
+    width, depth, height = TRAY_SIZE
+    zone_width = 0.39
     floor_z = TABLE_TOP_Z + BIN_THICKNESS / 2
     wall_z = TABLE_TOP_Z + height / 2
-    parts = (
+    parts = []
+    for zone in SORTING_ZONES:
+        parts.extend(
+            (
+                (
+                    f"{zone.name}_floor",
+                    (zone.center_x, y, floor_z),
+                    (zone_width / 2, depth / 2, BIN_THICKNESS / 2),
+                    zone.color,
+                ),
+                (
+                    f"{zone.name}_front_wall",
+                    (
+                        zone.center_x,
+                        y - depth / 2 + BIN_THICKNESS / 2,
+                        wall_z,
+                    ),
+                    (zone_width / 2, BIN_THICKNESS / 2, height / 2),
+                    zone.color,
+                ),
+                (
+                    f"{zone.name}_rear_wall",
+                    (
+                        zone.center_x,
+                        y + depth / 2 - BIN_THICKNESS / 2,
+                        wall_z,
+                    ),
+                    (zone_width / 2, BIN_THICKNESS / 2, height / 2),
+                    zone.color,
+                ),
+            )
+        )
+    parts.extend(
         (
-            "floor",
-            (x, y, floor_z),
-            (width / 2, depth / 2, BIN_THICKNESS / 2),
-        ),
-        (
-            "front_wall",
-            (x, y - depth / 2 + BIN_THICKNESS / 2, wall_z),
-            (width / 2, BIN_THICKNESS / 2, height / 2),
-        ),
-        (
-            "rear_wall",
-            (x, y + depth / 2 - BIN_THICKNESS / 2, wall_z),
-            (width / 2, BIN_THICKNESS / 2, height / 2),
-        ),
-        (
-            "left_wall",
-            (x - width / 2 + BIN_THICKNESS / 2, y, wall_z),
-            (BIN_THICKNESS / 2, depth / 2, height / 2),
-        ),
-        (
-            "right_wall",
-            (x + width / 2 - BIN_THICKNESS / 2, y, wall_z),
-            (BIN_THICKNESS / 2, depth / 2, height / 2),
-        ),
+            (
+                "left_outer_wall",
+                (x - width / 2 + BIN_THICKNESS / 2, y, wall_z),
+                (BIN_THICKNESS / 2, depth / 2, height / 2),
+                SORTING_ZONES[0].color,
+            ),
+            (
+                "right_outer_wall",
+                (x + width / 2 - BIN_THICKNESS / 2, y, wall_z),
+                (BIN_THICKNESS / 2, depth / 2, height / 2),
+                SORTING_ZONES[-1].color,
+            ),
+            (
+                "recyclable_other_divider",
+                (-zone_width / 2, y, wall_z),
+                (BIN_THICKNESS / 2, depth / 2, height / 2),
+                DIVIDER_COLOR,
+            ),
+            (
+                "other_hazardous_divider",
+                (zone_width / 2, y, wall_z),
+                (BIN_THICKNESS / 2, depth / 2, height / 2),
+                DIVIDER_COLOR,
+            ),
+        )
     )
     return tuple(
         create_box(
             scene=scene,
             pose=sapien.Pose(position),
             half_size=half_size,
-            color=spec.color,
+            color=color,
             is_static=True,
-            name=f"{spec.name}_{part_name}",
+            name=name,
         )
-        for part_name, position, half_size in parts
+        for name, position, half_size, color in parts
     )
 
 
@@ -252,7 +298,7 @@ class garbage_sorting(Base_Task):
         right_config["homestate"] = [LEFT_HOME_STATE.copy(), RIGHT_HOME_STATE.copy()]
         kwargs["left_embodiment_config"] = left_config
         kwargs["right_embodiment_config"] = right_config
-        kwargs["table_color_override"] = WOOD_TABLE_COLOR
+        kwargs["table_color_override"] = TABLE_COLOR
         super()._init_task_env_(
             now_ep_num=now_ep_num,
             seed=seed,
@@ -261,9 +307,8 @@ class garbage_sorting(Base_Task):
         )
 
     def load_actors(self):
-        self.bin_components = {
-            spec.name: create_open_bin(self, spec) for spec in BIN_SPECS
-        }
+        self.placement_mat = create_placement_mat(self)
+        self.bin_components = create_sorting_tray(self)
         self.trash_objects = {}
         self.trash_categories = {}
         self.object_metadata = {}
