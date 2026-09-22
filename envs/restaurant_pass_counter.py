@@ -5,6 +5,17 @@ import sapien
 
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
+LOOSE_PROP_MASS_KG = 0.05
+LOOSE_PROP_MAX_DEPENETRATION_VELOCITY_M_S = 0.5
+
+
+def _configure_loose_prop(actor):
+    actor.set_mass(LOOSE_PROP_MASS_KG)
+    for component in actor.actor.get_components():
+        if isinstance(component, sapien.physx.PhysxRigidDynamicComponent):
+            component.max_depenetration_velocity = (
+                LOOSE_PROP_MAX_DEPENETRATION_VELOCITY_M_S
+            )
 
 
 class restaurant_pass_counter(Base_Task):
@@ -45,7 +56,7 @@ class restaurant_pass_counter(Base_Task):
             convex=True,
             model_id=0,
         )
-        self.hamburg.set_mass(0.05)
+        _configure_loose_prop(self.hamburg)
 
         self.frenchfries = create_actor(
             scene=self,
@@ -54,7 +65,7 @@ class restaurant_pass_counter(Base_Task):
             convex=True,
             model_id=0,
         )
-        self.frenchfries.set_mass(0.05)
+        _configure_loose_prop(self.frenchfries)
 
         self.coke_can = create_actor(
             scene=self,
@@ -63,7 +74,7 @@ class restaurant_pass_counter(Base_Task):
             convex=True,
             model_id=3,
         )
-        self.coke_can.set_mass(0.05)
+        _configure_loose_prop(self.coke_can)
 
         self.bell = create_actor(
             scene=self,
