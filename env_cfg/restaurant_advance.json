@@ -1,6 +1,6 @@
 {
   "schema_version": "restaurant_advance_layout_v1",
-  "stage": "equipment_layout_v6_candidate",
+  "stage": "equipment_layout_v7_candidate",
   "robot_base_translation_m": [0.0, 0.20, 0.0],
   "home_joint_states": {
     "left": [0.03790547366539565, -0.5329034696960475, 0.4612270137952495, -2.9091939705120295, 0.5426568460830519, 2.558907404095831, 0.5819698859705812],
@@ -172,12 +172,12 @@
       "model_id": 0,
       "placement": {
         "equipment": "fries_machine",
-        "position_local": [-0.14, -0.045, 0.056296290665864945],
-        "validation_status": "static_footprint_passed_native_unverified",
-        "validation_evidence": "artifacts/restaurant-advance-foundation-20261016/v3-assets/placement-geometry-contract.json",
-        "orientation_status": "upright_candidate_unverified_native_simulation"
+        "position_local": [-0.14, -0.045, 0.07175568521632177],
+        "validation_status": "static_flat_footprint_passed_native_unverified",
+        "validation_evidence": "artifacts/restaurant-advance-foundation-20261016/v7-flat-fries-check/placement-geometry-contract.json",
+        "orientation_status": "flat_candidate_unverified_native_simulation"
       },
-      "quaternion_wxyz": [0.7071067811865476, 0.7071067811865476, 0.0, 0.0],
+      "quaternion_wxyz": [1.0, 0.0, 0.0, 0.0],
       "is_static": false,
       "convex": true,
       "loose_prop": true
