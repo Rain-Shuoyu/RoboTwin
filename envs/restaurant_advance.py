@@ -32,6 +32,17 @@ def _load_layout(layout_path):
 class restaurant_advance(restaurant_pass_counter):
     def setup_demo(self, **kwargs):
         self.layout = _load_layout(DEFAULT_LAYOUT)
+        kwargs = kwargs.copy()
+        translation = self.layout["robot_base_translation_m"]
+        # Apply the scene offset before inherited setup creates robots and planners.
+        for side in ("left", "right"):
+            key = f"{side}_embodiment_config"
+            config = deepcopy(kwargs[key])
+            config["robot_pose"] = [
+                [pose[axis] + translation[axis] for axis in range(3)] + list(pose[3:])
+                for pose in config["robot_pose"]
+            ]
+            kwargs[key] = config
         return super().setup_demo(**kwargs)
 
     def setup_scene(self, **kwargs):
