@@ -1,7 +1,11 @@
 {
   "schema_version": "restaurant_advance_layout_v1",
-  "stage": "equipment_layout_v4_candidate",
+  "stage": "equipment_layout_v5_candidate",
   "robot_base_translation_m": [0.0, 0.20, 0.0],
+  "home_joint_states": {
+    "left": [0.03790547366539565, -0.5329034696960475, 0.4612270137952495, -2.9091939705120295, 0.5426568460830519, 2.558907404095831, 0.5819698859705812],
+    "right": [-0.06752367692119464, -0.5267716085936752, -0.4270457603041517, -2.911747443159416, -0.5136611610719034, 2.567267179819571, 0.9686398492855167]
+  },
   "validation": {
     "native_simulation": "unverified",
     "contact": "unverified",

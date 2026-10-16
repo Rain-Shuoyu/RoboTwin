@@ -45,6 +45,18 @@ class restaurant_advance(restaurant_pass_counter):
             kwargs[key] = config
         return super().setup_demo(**kwargs)
 
+    def load_robot(self, **kwargs):
+        kwargs = kwargs.copy()
+        # The inherited setup overwrites homes; apply this scene's values here.
+        for side in ("left", "right"):
+            key = f"{side}_embodiment_config"
+            config = deepcopy(kwargs[key])
+            config["homestate"] = [
+                self.layout["home_joint_states"][arm].copy() for arm in ("left", "right")
+            ]
+            kwargs[key] = config
+        return super().load_robot(**kwargs)
+
     def setup_scene(self, **kwargs):
         lighting = deepcopy(self.layout["lighting"])
         lighting.update(kwargs)
@@ -52,7 +64,6 @@ class restaurant_advance(restaurant_pass_counter):
 
     def create_table_and_wall(self, table_xy_bias=(0, 0), table_height=0.74,
                               table_texture_override=None, table_color_override=None):
-        # The inherited initialization still supplies the original robot homes.
         # This scene owns its fixed materials and does not change any cameras.
         self.table_xy_bias = list(table_xy_bias)
         self.wall_texture = self.table_texture = None
