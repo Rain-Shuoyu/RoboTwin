@@ -1,0 +1,68 @@
+{
+  "schema_version": "robotwin_fixed_geometry_v1",
+  "geometry": [
+    {
+      "name": "wall",
+      "center": [0.0, 0.605, 1.04],
+      "material": "wall_tiles",
+      "collision": true,
+      "boxes": [
+        {"center": [-0.51, 0.0, -0.11], "half_size": [0.24, 0.025, 0.14]},
+        {"center": [0.49, 0.0, -0.11], "half_size": [0.26, 0.025, 0.14]},
+        {"center": [0.0, 0.0, -0.275], "half_size": [0.75, 0.025, 0.025]},
+        {"center": [0.0, 0.0, 0.165], "half_size": [0.75, 0.025, 0.135]}
+      ]
+    },
+    {
+      "name": "kitchen_back_wall",
+      "center": [0.0, 0.705, 1.25],
+      "material": "upper_wall",
+      "collision": true,
+      "boxes": [
+        {"center": [-0.56, 0.0, -0.32], "half_size": [0.29, 0.07, 0.14]},
+        {"center": [0.54, 0.0, -0.32], "half_size": [0.31, 0.07, 0.14]},
+        {"center": [0.0, 0.0, -0.555], "half_size": [0.85, 0.07, 0.095]},
+        {"center": [0.0, 0.0, 0.235], "half_size": [0.85, 0.07, 0.415]}
+      ]
+    },
+    {
+      "name": "pickup_window_frame",
+      "center": [-0.02, 0.565, 0.94],
+      "material": "stainless_trim",
+      "collision": true,
+      "boxes": [
+        {"center": [-0.26, 0.0, -0.01], "half_size": [0.01, 0.025, 0.14]},
+        {"center": [0.26, 0.0, -0.01], "half_size": [0.01, 0.025, 0.14]},
+        {"center": [0.0, 0.0, 0.14], "half_size": [0.27, 0.025, 0.01]}
+      ]
+    },
+    {
+      "name": "pickup_window_sill",
+      "center": [-0.02, 0.645, 0.78],
+      "half_size": [0.27, 0.105, 0.01],
+      "material": "stainless_trim",
+      "collision": true
+    },
+    {
+      "name": "pickup_kitchen_prep_surface",
+      "center": [-0.02, 0.90, 0.77],
+      "half_size": [0.35, 0.15, 0.02],
+      "material": "stainless_trim",
+      "collision": true
+    },
+    {
+      "name": "pickup_kitchen_background",
+      "center": [-0.02, 1.05, 0.97],
+      "half_size": [0.35, 0.025, 0.18],
+      "material": "upper_wall",
+      "collision": true
+    }
+  ],
+  "foundation_point_lights": [
+    {
+      "position": [-0.02, 0.86, 1.03],
+      "color": [0.12, 0.085, 0.045],
+      "shadow": true
+    }
+  ]
+}

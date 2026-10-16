@@ -14,11 +14,24 @@ DEFAULT_LAYOUT = Path(__file__).resolve().parents[1] / "env_cfg/restaurant_advan
 BACKGROUND_TEXTURE_ROOT = Path(__file__).resolve().parents[1] / "assets/background_texture"
 
 
+def _load_layout(layout_path):
+    layout = json.loads(layout_path.read_text())
+    if layout["schema_version"] != "restaurant_advance_layout_v1":
+        raise ValueError("unsupported restaurant layout")
+    lights = layout.setdefault("foundation_point_lights", [])
+    for relative_path in layout.get("geometry_components", []):
+        component_path = layout_path.parent / relative_path
+        component = json.loads(component_path.read_text())
+        if component["schema_version"] != "robotwin_fixed_geometry_v1":
+            raise ValueError(f"unsupported fixed geometry component: {component_path}")
+        layout["geometry"].extend(component["geometry"])
+        lights.extend(component["foundation_point_lights"])
+    return layout
+
+
 class restaurant_advance(restaurant_pass_counter):
     def setup_demo(self, **kwargs):
-        self.layout = json.loads(DEFAULT_LAYOUT.read_text())
-        if self.layout["schema_version"] != "restaurant_advance_layout_v1":
-            raise ValueError("unsupported restaurant foundation layout")
+        self.layout = _load_layout(DEFAULT_LAYOUT)
         return super().setup_demo(**kwargs)
 
     def setup_scene(self, **kwargs):
@@ -52,14 +65,20 @@ class restaurant_advance(restaurant_pass_counter):
         for descriptor in self.layout["geometry"]:
             builder = self.scene.create_actor_builder()
             builder.set_physx_body_type("static")
-            if descriptor["collision"]:
-                builder.add_box_collision(
-                    half_size=descriptor["half_size"],
-                    material=self.scene.default_physical_material,
+            boxes = (descriptor["boxes"] if "boxes" in descriptor
+                     else [{"half_size": descriptor["half_size"]}])
+            for part in boxes:
+                local_pose = sapien.Pose(part.get("center", [0, 0, 0]),
+                                         part.get("quaternion_wxyz", [1, 0, 0, 0]))
+                if descriptor["collision"]:
+                    builder.add_box_collision(
+                        pose=local_pose, half_size=part["half_size"],
+                        material=self.scene.default_physical_material,
+                    )
+                builder.add_box_visual(
+                    pose=local_pose, half_size=part["half_size"],
+                    material=materials[part.get("material", descriptor["material"])],
                 )
-            builder.add_box_visual(
-                half_size=descriptor["half_size"], material=materials[descriptor["material"]],
-            )
             x, y, z = descriptor["center"]
             builder.set_initial_pose(sapien.Pose(
                 [x + table_xy_bias[0], y + table_xy_bias[1], z + z_bias],
@@ -73,6 +92,13 @@ class restaurant_advance(restaurant_pass_counter):
             self.foundation_actors[name] = actor
         self.table = self.foundation_actors["table"]
         self.wall = self.foundation_actors["wall"]
+        self.foundation_lights = []
+        for light in self.layout.get("foundation_point_lights", []):
+            x, y, z = light["position"]
+            self.foundation_lights.append(self.scene.add_point_light(
+                [x + table_xy_bias[0], y + table_xy_bias[1], z + z_bias],
+                light["color"], shadow=light["shadow"],
+            ))
 
     def _attach_front_texture(self, actor, half_size, material):
         # Use an explicit front quad instead of relying on a box's built-in UVs.
