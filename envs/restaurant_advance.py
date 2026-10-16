@@ -34,7 +34,7 @@ class restaurant_advance(restaurant_pass_counter):
         self.layout = _load_layout(DEFAULT_LAYOUT)
         kwargs = kwargs.copy()
         translation = self.layout["robot_base_translation_m"]
-        # Apply the scene offset before inherited setup creates robots and planners.
+        # Apply scene settings before base initialization creates robots and planners.
         for side in ("left", "right"):
             key = f"{side}_embodiment_config"
             config = deepcopy(kwargs[key])
@@ -42,20 +42,11 @@ class restaurant_advance(restaurant_pass_counter):
                 [pose[axis] + translation[axis] for axis in range(3)] + list(pose[3:])
                 for pose in config["robot_pose"]
             ]
-            kwargs[key] = config
-        return super().setup_demo(**kwargs)
-
-    def load_robot(self, **kwargs):
-        kwargs = kwargs.copy()
-        # The inherited setup overwrites homes; apply this scene's values here.
-        for side in ("left", "right"):
-            key = f"{side}_embodiment_config"
-            config = deepcopy(kwargs[key])
             config["homestate"] = [
                 self.layout["home_joint_states"][arm].copy() for arm in ("left", "right")
             ]
             kwargs[key] = config
-        return super().load_robot(**kwargs)
+        return self._init_task_env_(**kwargs)
 
     def setup_scene(self, **kwargs):
         lighting = deepcopy(self.layout["lighting"])
