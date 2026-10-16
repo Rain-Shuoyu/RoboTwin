@@ -6,12 +6,23 @@ from pathlib import Path
 import numpy as np
 import sapien
 
-from .restaurant_pass_counter import restaurant_pass_counter, _configure_loose_prop
+from ._base_task import Base_Task
 from .utils import create_actor
 
 
 DEFAULT_LAYOUT = Path(__file__).resolve().parents[1] / "env_cfg/restaurant_advance.json"
 BACKGROUND_TEXTURE_ROOT = Path(__file__).resolve().parents[1] / "assets/background_texture"
+LOOSE_PROP_MASS_KG = 0.05
+LOOSE_PROP_MAX_DEPENETRATION_VELOCITY_M_S = 0.5
+
+
+def _configure_loose_prop(actor):
+    actor.set_mass(LOOSE_PROP_MASS_KG)
+    for component in actor.actor.get_components():
+        if isinstance(component, sapien.physx.PhysxRigidDynamicComponent):
+            component.max_depenetration_velocity = (
+                LOOSE_PROP_MAX_DEPENETRATION_VELOCITY_M_S
+            )
 
 
 def _load_layout(layout_path):
@@ -29,10 +40,11 @@ def _load_layout(layout_path):
     return layout
 
 
-class restaurant_advance(restaurant_pass_counter):
+class restaurant_advance(Base_Task):
     def setup_demo(self, **kwargs):
         self.layout = _load_layout(DEFAULT_LAYOUT)
         kwargs = kwargs.copy()
+        kwargs["scene_setup_kwargs"] = deepcopy(self.layout["lighting"])
         translation = self.layout["robot_base_translation_m"]
         # Apply scene settings before base initialization creates robots and planners.
         for side in ("left", "right"):
@@ -47,11 +59,6 @@ class restaurant_advance(restaurant_pass_counter):
             ]
             kwargs[key] = config
         return self._init_task_env_(**kwargs)
-
-    def setup_scene(self, **kwargs):
-        lighting = deepcopy(self.layout["lighting"])
-        lighting.update(kwargs)
-        return super().setup_scene(**lighting)
 
     def create_table_and_wall(self, table_xy_bias=(0, 0), table_height=0.74,
                               table_texture_override=None, table_color_override=None):

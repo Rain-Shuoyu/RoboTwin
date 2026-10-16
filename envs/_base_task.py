@@ -87,7 +87,7 @@ class Base_Task(gym.Env):
         self.plan_success = True
         self.step_lim = None
         self.fix_gripper = False
-        self.setup_scene()
+        self.setup_scene(**kwags.get("scene_setup_kwargs", {}))
 
         self.left_js = None
         self.right_js = None
