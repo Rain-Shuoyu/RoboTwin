@@ -1,6 +1,6 @@
 {
   "schema_version": "restaurant_advance_layout_v1",
-  "stage": "equipment_layout_v2_candidate",
+  "stage": "equipment_layout_v3_candidate",
   "validation": {
     "native_simulation": "unverified",
     "contact": "unverified",
@@ -96,13 +96,6 @@
       "collision": true
     },
     {
-      "name": "burger_pad",
-      "center": [-0.02, 0.15, 0.7475],
-      "half_size": [0.10, 0.09, 0.0075],
-      "material": "stainless_trim",
-      "collision": true
-    },
-    {
       "name": "wall_red_trim",
       "center": [0.0, 0.572, 0.765],
       "half_size": [0.75, 0.008, 0.025],
@@ -157,12 +150,11 @@
       "attribute": "hamburg",
       "modelname": "006_hamburg",
       "model_id": 0,
-      "position": [-0.02, 0.11, 0.7566561275532363],
-      "support": {
-        "geometry": "burger_pad",
-        "minimum_z_after_rotation_m": -0.0006561275532363294,
-        "clearance_m": 0.001,
-        "validation_status": "metadata_projection_only"
+      "placement": {
+        "equipment": "fries_machine",
+        "position_local": [0.14, -0.045, 0.05694397298599467],
+        "validation_status": "static_footprint_passed_native_unverified",
+        "validation_evidence": "artifacts/restaurant-advance-foundation-20261016/v3-assets/placement-geometry-contract.json"
       },
       "quaternion_wxyz": [0.5, 0.5, 0.5, 0.5],
       "is_static": false,
@@ -175,9 +167,9 @@
       "model_id": 0,
       "placement": {
         "equipment": "fries_machine",
-        "position_local": [0.0, -0.06, 0.0564],
+        "position_local": [-0.14, -0.045, 0.056296290665864945],
         "validation_status": "static_footprint_passed_native_unverified",
-        "validation_evidence": "artifacts/restaurant-advance-foundation-20261016/fries/front-pickup-clearance-v2.json",
+        "validation_evidence": "artifacts/restaurant-advance-foundation-20261016/v3-assets/placement-geometry-contract.json",
         "orientation_status": "upright_candidate_unverified_native_simulation"
       },
       "quaternion_wxyz": [0.7071067811865476, 0.7071067811865476, 0.0, 0.0],
@@ -191,8 +183,9 @@
       "model_id": 3,
       "placement": {
         "equipment": "beverage_machine",
-        "position_local": [0.0, -0.2, 0.1136493135],
-        "validation_status": "unverified_native_simulation"
+        "position_local": [0.0, -0.112, 0.11379735770844596],
+        "validation_status": "static_footprint_passed_native_unverified",
+        "validation_evidence": "artifacts/restaurant-advance-foundation-20261016/v3-assets/placement-geometry-contract.json"
       },
       "quaternion_wxyz": [0.707225, 0.706849, -0.0100455, -0.00982061],
       "is_static": false,
@@ -213,44 +206,45 @@
   "equipment": [
     {
       "attribute": "fries_machine",
-      "modelname": "921_restaurant_fries_machine",
+      "modelname": "923_restaurant_shared_food_warmer",
       "model_id": 0,
       "mount": "fries_warmer",
       "quaternion_wxyz": [1.0, 0.0, 0.0, 0.0],
       "is_static": true,
       "convex": false,
-      "dimensions_m": [0.32, 0.22898318911920162, 0.15025566112894798],
+      "dimensions_m": [0.60, 0.32, 0.15025566112894798],
       "enabled": true,
       "point_lights": [
         {
-          "position_local": [0.0, 0.05, 0.135],
+          "position_local": [0.0, 0.06987412508990298, 0.135],
           "color": [0.022, 0.014, 0.005],
           "shadow": true,
-          "validation_status": "unverified_render"
+          "validation_status": "unverified_render",
+          "validation_evidence": "artifacts/restaurant-advance-foundation-20261016/v3-assets/placement-geometry-contract.json"
         }
       ]
     },
     {
       "attribute": "beverage_machine",
-      "modelname": "920_restaurant_beverage_machine",
+      "modelname": "922_restaurant_beverage_machine_slim",
       "model_id": 0,
       "mount": "drink_dispenser",
       "quaternion_wxyz": [1.0, 0.0, 0.0, 0.0],
       "is_static": true,
       "convex": false,
-      "dimensions_m": [0.42, 0.48860007949345696, 0.5756742557971838],
+      "dimensions_m": [0.42, 0.30, 0.5756742557971838],
       "enabled": true
     }
   ],
   "equipment_mounts": {
     "fries_warmer": {
-      "center_xy": [-0.36, 0.18],
-      "footprint_xy": [0.32, 0.22898318911920162],
+      "center_xy": [-0.26, 0.19],
+      "footprint_xy": [0.60, 0.32],
       "support_z": 0.74
     },
     "drink_dispenser": {
-      "center_xy": [0.51, 0.22],
-      "footprint_xy": [0.42, 0.48860007949345696],
+      "center_xy": [0.51, 0.132],
+      "footprint_xy": [0.42, 0.30],
       "support_z": 0.74
     }
   }
