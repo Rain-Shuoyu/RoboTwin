@@ -108,7 +108,7 @@ class restaurant_advance(Base_Task):
             if descriptor["name"] == "table":
                 self.planning_table = {
                     "dims": [2 * value for value in descriptor["half_size"]],
-                    "pose": list(world_pose.p) + list(world_pose.q),
+                    "pose": [float(value) for value in (*world_pose.p, *world_pose.q)],
                 }
             name = descriptor["name"]
             actor = builder.build(name=name)
