@@ -193,8 +193,8 @@ try:
             state = JointState.from_position(self.motion_gen.tensor_args.to_device(ordered),
                                              joint_names=self.active_joints_name)
             measured = self.motion_gen.compute_kinematics(state)
-            base_positions = np.asarray(measured.ee_position.cpu()).reshape(-1, 3)
-            base_quaternions = np.asarray(measured.ee_quaternion.cpu()).reshape(-1, 4)
+            base_positions = np.asarray(measured.ee_pos_seq.cpu()).reshape(-1, 3)
+            base_quaternions = np.asarray(measured.ee_quat_seq.cpu()).reshape(-1, 4)
             origin_rotation = t3d.quaternions.quat2mat(self.robot_origion_pose.q)
             correction = np.eye(3)
             if "aloha-agilex" in self.yml_path:
@@ -224,8 +224,8 @@ try:
                 return np.concatenate((position + rotation @ np.array([tcp_bias, 0., 0.]),
                                        t3d.quaternions.mat2quat(rotation)))
 
-            start = tcp_pose(np.asarray(raw_state.ee_position.cpu()).reshape(3),
-                             np.asarray(raw_state.ee_quaternion.cpu()).reshape(4))
+            start = tcp_pose(np.asarray(raw_state.ee_pos_seq.cpu()).reshape(3),
+                             np.asarray(raw_state.ee_quat_seq.cpu()).reshape(4))
             references = [start] + [self._path_pose_in_base(pose, arms_tag)
                                     for pose in target_gripper_pose_list]
             solutions, progress = [current], [0.]
@@ -295,8 +295,8 @@ try:
             state = JointState.from_position(self.motion_gen.tensor_args.to_device(positions),
                                              joint_names=self.active_joints_name)
             actual = self.motion_gen.compute_kinematics(state)
-            actual_p = np.asarray(actual.ee_position.cpu()).reshape(-1, 3)
-            actual_q = np.asarray(actual.ee_quaternion.cpu()).reshape(-1, 4)
+            actual_p = np.asarray(actual.ee_pos_seq.cpu()).reshape(-1, 3)
+            actual_q = np.asarray(actual.ee_quat_seq.cpu()).reshape(-1, 4)
             for i, value in enumerate(dense_progress):
                 index = min(int(value), len(references) - 2)
                 expected = _interpolate_pose(references[index], references[index + 1], value - index)
