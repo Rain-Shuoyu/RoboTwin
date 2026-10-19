@@ -10,8 +10,32 @@ import transforms3d as t3d
 import envs._GLOBAL_CONFIGS as CONFIGS
 
 
+def _planning_table_world(robot_origin_pose, frame_bias, planning_table):
+    """Express a scene table box in the same arm frame used for target poses."""
+    if planning_table is None:
+        return {"cuboid": {"table": {
+            "dims": [0.7, 2, 0.04],
+            "pose": [robot_origin_pose.p[1], 0.0, 0.74 - robot_origin_pose.p[2], 1, 0, 0, 0.0],
+        }}}
+    # The inverse base rotation followed by frame_bias matches plan_path/plan_batch.
+    inverse_q = np.asarray(robot_origin_pose.q) * [1, -1, -1, -1]
+    delta = np.asarray(planning_table["pose"][:3]) - robot_origin_pose.p
+    vector = inverse_q[1:]
+    center = delta + 2 * np.cross(vector, np.cross(vector, delta) + inverse_q[0] * delta)
+    center += np.asarray(frame_bias)
+    table_q = np.asarray(planning_table["pose"][3:])
+    quaternion = np.concatenate((
+        [inverse_q[0] * table_q[0] - np.dot(vector, table_q[1:])],
+        inverse_q[0] * table_q[1:] + table_q[0] * vector + np.cross(vector, table_q[1:]),
+    ))
+    return {"cuboid": {"table": {
+        "dims": list(planning_table["dims"]), "pose": center.tolist() + quaternion.tolist(),
+    }}}
+
+
 try:
     # ********************** CuroboPlanner (optional) **********************
+    from curobo.geom.types import WorldConfig
     from curobo.types.math import Pose as CuroboPose
     import time
     from curobo.types.robot import JointState
@@ -35,6 +59,7 @@ try:
             active_joints_name,
             all_joints,
             yml_path=None,
+            planning_table=None,
         ):
             super().__init__()
             ta.setup_logging("CRITICAL")  # hide logging
@@ -53,24 +78,8 @@ try:
                 yml_data = yaml.safe_load(f)
             self.frame_bias = yml_data["planner"]["frame_bias"]
 
-            # motion generation
-            if True:
-                world_config = {
-                    "cuboid": {
-                        "table": {
-                            "dims": [0.7, 2, 0.04],  # x, y, z
-                            "pose": [
-                                self.robot_origion_pose.p[1],
-                                0.0,
-                                0.74 - self.robot_origion_pose.p[2],
-                                1,
-                                0,
-                                0,
-                                0.0,
-                            ],  # x, y, z, qw, qx, qy, qz
-                        },
-                    }
-                }
+            # Scene-supplied table replaces only the historical default table box.
+            world_config = _planning_table_world(robot_origion_pose, self.frame_bias, planning_table)
             motion_gen_config = MotionGenConfig.load_from_robot_config(
                 self.yml_path,
                 world_config,
@@ -89,6 +98,12 @@ try:
             )
             self.motion_gen_batch = MotionGen(motion_gen_config)
             self.motion_gen_batch.warmup(batch=CONFIGS.ROTATE_NUM)
+
+        def update_planning_table(self, robot_origin_pose, planning_table):
+            self.robot_origion_pose = robot_origin_pose
+            world = WorldConfig.from_dict(_planning_table_world(robot_origin_pose, self.frame_bias, planning_table))
+            self.motion_gen.update_world(world)
+            self.motion_gen_batch.update_world(world)
 
         def plan_path(
             self,

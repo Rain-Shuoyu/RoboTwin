@@ -100,10 +100,16 @@ class restaurant_advance(Base_Task):
                     material=materials[part.get("material", descriptor["material"])],
                 )
             x, y, z = descriptor["center"]
-            builder.set_initial_pose(sapien.Pose(
+            world_pose = sapien.Pose(
                 [x + table_xy_bias[0], y + table_xy_bias[1], z + z_bias],
                 descriptor.get("quaternion_wxyz", [1, 0, 0, 0]),
-            ))
+            )
+            builder.set_initial_pose(world_pose)
+            if descriptor["name"] == "table":
+                self.planning_table = {
+                    "dims": [2 * value for value in descriptor["half_size"]],
+                    "pose": list(world_pose.p) + list(world_pose.q),
+                }
             name = descriptor["name"]
             actor = builder.build(name=name)
             if "front_texture" in descriptor:

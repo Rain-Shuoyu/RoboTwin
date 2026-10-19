@@ -36,6 +36,7 @@ class Robot:
         right_robot_file = kwargs["right_robot_file"]
 
         self.need_topp = need_topp
+        self.planning_table = kwargs.get("planning_table")
 
         self.left_urdf_path = os.path.join(left_robot_file, left_embodiment_args["urdf_path"])
         self.left_srdf_path = left_embodiment_args.get("srdf_path", None)
@@ -126,14 +127,19 @@ class Robot:
 
         if self.communication_flag:
             if hasattr(self, "left_conn") and self.left_conn:
-                self.left_conn.send({"cmd": "reset"})
+                self.left_conn.send({"cmd": "reset", "origin_pose": self.left_entity_origion_pose,
+                                     "planning_table": self.planning_table})
                 _ = self.left_conn.recv()
             if hasattr(self, "right_conn") and self.right_conn:
-                self.right_conn.send({"cmd": "reset"})
+                self.right_conn.send({"cmd": "reset", "origin_pose": self.right_entity_origion_pose,
+                                      "planning_table": self.planning_table})
                 _ = self.right_conn.recv()
         else:
             if not isinstance(self.left_planner, CuroboPlanner) or not isinstance(self.right_planner, CuroboPlanner):
                 self.set_planner(scene=scene)
+            elif self.planning_table is not None:
+                self.left_planner.update_planning_table(self.left_entity_origion_pose, self.planning_table)
+                self.right_planner.update_planning_table(self.right_entity_origion_pose, self.planning_table)
 
         self.init_joints()
 
@@ -268,11 +274,13 @@ class Robot:
             self.left_planner = CuroboPlanner(self.left_entity_origion_pose,
                                               self.left_arm_joints_name,
                                               [joint.get_name() for joint in self.left_entity.get_active_joints()],
-                                              yml_path=abs_left_curobo_yml_path)
+                                              yml_path=abs_left_curobo_yml_path,
+                                              planning_table=self.planning_table)
             self.right_planner = CuroboPlanner(self.right_entity_origion_pose,
                                                self.right_arm_joints_name,
                                                [joint.get_name() for joint in self.right_entity.get_active_joints()],
-                                               yml_path=abs_right_curobo_yml_path)
+                                               yml_path=abs_right_curobo_yml_path,
+                                               planning_table=self.planning_table)
         else:
             self.left_conn, left_child_conn = mp.Pipe()
             self.right_conn, right_child_conn = mp.Pipe()
@@ -281,14 +289,16 @@ class Robot:
                 "origin_pose": self.left_entity_origion_pose,
                 "joints_name": self.left_arm_joints_name,
                 "all_joints": [joint.get_name() for joint in self.left_entity.get_active_joints()],
-                "yml_path": abs_left_curobo_yml_path
+                "yml_path": abs_left_curobo_yml_path,
+                "planning_table": self.planning_table,
             }
 
             right_args = {
                 "origin_pose": self.right_entity_origion_pose,
                 "joints_name": self.right_arm_joints_name,
                 "all_joints": [joint.get_name() for joint in self.right_entity.get_active_joints()],
-                "yml_path": abs_right_curobo_yml_path
+                "yml_path": abs_right_curobo_yml_path,
+                "planning_table": self.planning_table,
             }
 
             self.left_proc = mp.Process(target=planner_process_worker, args=(left_child_conn, left_args))
@@ -663,7 +673,8 @@ def planner_process_worker(conn, args):
     import os
     from .planner import CuroboPlanner  # 或者绝对路径导入
 
-    planner = CuroboPlanner(args["origin_pose"], args["joints_name"], args["all_joints"], yml_path=args["yml_path"])
+    planner = CuroboPlanner(args["origin_pose"], args["joints_name"], args["all_joints"],
+                            yml_path=args["yml_path"], planning_table=args["planning_table"])
 
     while True:
         try:
@@ -698,6 +709,8 @@ def planner_process_worker(conn, args):
                 conn.send("ok")
 
             elif msg["cmd"] == "reset":
+                if msg["planning_table"] is not None:
+                    planner.update_planning_table(msg["origin_pose"], msg["planning_table"])
                 planner.motion_gen.reset(reset_seed=True)
                 conn.send("ok")
 
