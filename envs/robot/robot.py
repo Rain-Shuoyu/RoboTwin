@@ -518,21 +518,6 @@ class Robot:
             target_joint_positions=target_joint_positions, joint_names=joint_names,
         )
 
-    def plan_tcp_path(self, arm, target_poses, **options):
-        # The ordinary plan_path convention names a point 0.12 m behind
-        # the public TCP. Interpolate the public TCP before applying its
-        # rotating offset to the model end link at each inverse solution.
-        tcp_poses = []
-        for pose in target_poses:
-            rotation = t3d.quaternions.quat2mat(pose[3:])
-            tcp_poses.append(sapien.Pose(np.asarray(pose[:3]) + rotation @ np.array([.12, 0., 0.]), pose[3:]))
-        return self._motion_request(
-            arm, "plan_tcp_path", curr_joint_pos=getattr(self, f"{arm}_entity").get_qpos(),
-            target_gripper_pose_list=tcp_poses,
-            tcp_bias=getattr(self, f"{arm}_gripper_bias"), tcp_delta=getattr(self, f"{arm}_delta_matrix"),
-            arms_tag=arm, **options,
-        )
-
     def forward_tcp_path(self, arm, joint_positions, *, joint_names):
         """Public robot kinematics only; no actors, cameras, or simulator truth."""
         endlink_poses = self._motion_request(
@@ -745,7 +730,7 @@ def planner_process_worker(conn, args):
                 )
                 conn.send(result)
 
-            elif msg["cmd"] in ("plan_joint_path", "plan_tcp_path", "forward_kinematics"):
+            elif msg["cmd"] in ("plan_joint_path", "forward_kinematics"):
                 try:
                     result = getattr(planner, msg["cmd"])(**{key: value for key, value in msg.items() if key != "cmd"})
                 except Exception as error:
