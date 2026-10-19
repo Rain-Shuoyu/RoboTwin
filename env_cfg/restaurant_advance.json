@@ -1,6 +1,6 @@
 {
   "schema_version": "restaurant_advance_layout_v1",
-  "stage": "equipment_layout_v9_cola_candidate",
+  "stage": "equipment_layout_v10_cola_candidate",
   "robot_base_translation_m": [0.0, 0.20, 0.0],
   "home_joint_states": {
     "left": [0.03790547366539565, -0.5329034696960475, 0.4612270137952495, -2.9091939705120295, 0.5426568460830519, 2.558907404095831, 0.5819698859705812],
@@ -201,7 +201,7 @@
       "attribute": "bell",
       "modelname": "050_bell",
       "model_id": 0,
-      "position": [0.13, 0.19, 0.741],
+      "position": [0.09, 0.16, 0.741],
       "quaternion_wxyz": [0.5, 0.5, 0.5, 0.5],
       "is_static": true,
       "convex": true,
@@ -234,7 +234,7 @@
       "modelname": "922_restaurant_beverage_machine_slim",
       "model_id": 0,
       "mount": "drink_dispenser",
-      "quaternion_wxyz": [1.0, 0.0, 0.0, 0.0],
+      "quaternion_wxyz": [0.984807753012208, 0.0, 0.0, -0.17364817766693033],
       "is_static": true,
       "convex": false,
       "dimensions_m": [0.42, 0.30, 0.5756742557971838],
@@ -248,7 +248,7 @@
       "support_z": 0.74
     },
     "drink_dispenser": {
-      "center_xy": [0.51, 0.19],
+      "center_xy": [0.46, 0.27],
       "footprint_xy": [0.42, 0.30],
       "support_z": 0.74
     }
