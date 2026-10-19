@@ -500,6 +500,54 @@ class Robot:
                 arms_tag="right",
             )
 
+    def _motion_request(self, arm, command, **parameters):
+        if arm not in ("left", "right"):
+            raise ValueError("arm must be left or right")
+        if self.communication_flag:
+            connection = getattr(self, f"{arm}_conn")
+            connection.send({"cmd": command, **parameters})
+            result = connection.recv()
+            if isinstance(result, dict) and result.get("status") == "Error":
+                raise RuntimeError(result.get("reason", "native planner request failed"))
+            return result
+        return getattr(getattr(self, f"{arm}_planner"), command)(**parameters)
+
+    def plan_joint_path(self, arm, target_joint_positions, *, joint_names):
+        return self._motion_request(
+            arm, "plan_joint_path", curr_joint_pos=getattr(self, f"{arm}_entity").get_qpos(),
+            target_joint_positions=target_joint_positions, joint_names=joint_names,
+        )
+
+    def plan_tcp_path(self, arm, target_poses, **options):
+        # The ordinary plan_path convention names a point 0.12 m behind
+        # the public TCP. Interpolate the public TCP before applying its
+        # rotating offset to the model end link at each inverse solution.
+        tcp_poses = []
+        for pose in target_poses:
+            rotation = t3d.quaternions.quat2mat(pose[3:])
+            tcp_poses.append(sapien.Pose(np.asarray(pose[:3]) + rotation @ np.array([.12, 0., 0.]), pose[3:]))
+        return self._motion_request(
+            arm, "plan_tcp_path", curr_joint_pos=getattr(self, f"{arm}_entity").get_qpos(),
+            target_gripper_pose_list=tcp_poses,
+            tcp_bias=getattr(self, f"{arm}_gripper_bias"), tcp_delta=getattr(self, f"{arm}_delta_matrix"),
+            arms_tag=arm, **options,
+        )
+
+    def forward_tcp_path(self, arm, joint_positions, *, joint_names):
+        """Public robot kinematics only; no actors, cameras, or simulator truth."""
+        endlink_poses = self._motion_request(
+            arm, "forward_kinematics", joint_positions=joint_positions,
+            joint_names=joint_names, arms_tag=arm,
+        )
+        delta = getattr(self, f"{arm}_delta_matrix")
+        bias = getattr(self, f"{arm}_gripper_bias")
+        result = []
+        for pose in endlink_poses:
+            rotation = t3d.quaternions.quat2mat(pose[3:]) @ delta
+            result.append(np.concatenate((pose[:3] + rotation @ np.array([bias, 0, 0]),
+                                          t3d.quaternions.mat2quat(rotation))))
+        return np.asarray(result)
+
     # The data of gripper has been normalized
     def get_left_arm_jointState(self) -> list:
         jointState_list = []
@@ -695,6 +743,13 @@ def planner_process_worker(conn, args):
                     constraint_pose=msg.get("constraint_pose", None),
                     arms_tag=msg["arms_tag"],
                 )
+                conn.send(result)
+
+            elif msg["cmd"] in ("plan_joint_path", "plan_tcp_path", "forward_kinematics"):
+                try:
+                    result = getattr(planner, msg["cmd"])(**{key: value for key, value in msg.items() if key != "cmd"})
+                except Exception as error:
+                    result = {"status": "Error", "reason": type(error).__name__}
                 conn.send(result)
 
             elif msg["cmd"] == "plan_grippers":
