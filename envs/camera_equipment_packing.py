@@ -1,4 +1,4 @@
-"""Four loose camera accessories and a rigid case with a movable lid."""
+"""Bright camera-rental counter with four packable items and an open case."""
 
 from __future__ import annotations
 
@@ -6,17 +6,22 @@ import numpy as np
 import sapien
 
 from ._base_task import Base_Task
+from .camera_rental_decor import create_front_image_panel
 from .utils import create_actor, create_box, create_sapien_urdf_obj, create_table
 
 
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
+# Centers are physical XY bounding-box centers, not asset root translations.
 EQUIPMENT_LAYOUT = {
-    "camera": {"x": -0.36, "mass_kg": 0.45},
-    "flash": {"x": -0.09, "mass_kg": 0.10},
-    "lens": {"x": 0.14, "mass_kg": 0.12},
-    "battery": {"x": 0.38, "mass_kg": 0.10},
+    "camera": {"center_xy_m": [-0.23, -0.42], "support_z_m": 0.74, "mass_kg": 0.45},
+    "flash": {"center_xy_m": [-0.39, -0.16], "support_z_m": 0.84, "mass_kg": 0.10},
+    "lens": {"center_xy_m": [0.39, -0.16], "support_z_m": 0.84, "mass_kg": 0.12},
+    "battery": {"center_xy_m": [0.23, -0.42], "support_z_m": 0.74, "mass_kg": 0.10},
 }
+INITIAL_SUPPORT_CLEARANCE_M = 0.002
+WALL_FRONT_Y_M = 0.72
+POSTER_CENTERS_M = [[-0.46, 0.702, 1.52], [0.46, 0.702, 1.52]]
 MAX_DEPENETRATION_SPEED_M_S = 0.5
 MAX_LINEAR_SPEED_M_S = 0.03
 MAX_ANGULAR_SPEED_RAD_S = 0.3
@@ -37,7 +42,7 @@ class camera_equipment_packing(Base_Task):
         kwargs["left_embodiment_config"] = left
         kwargs["right_embodiment_config"] = right
         kwargs["table_xy_bias"] = [0.0, -0.10]
-        kwargs["table_color_override"] = [0.28, 0.30, 0.32]
+        kwargs["table_color_override"] = [0.94, 0.95, 0.93]
         super()._init_task_env_(**kwargs)
 
     def create_table_and_wall(
@@ -51,29 +56,87 @@ class camera_equipment_packing(Base_Task):
             self.table_texture = None
         self.wall = create_box(
             scene=self.scene,
-            pose=sapien.Pose([0, 1.2, 1.5]),
-            half_size=[3, 0.6, 1.5],
-            color=(1, 0.9, 0.9),
-            name="wall",
-            is_static=True,
+            pose=sapien.Pose([0, WALL_FRONT_Y_M + 0.05, 1.30]),
+            half_size=[1.6, 0.05, 1.30],
+            color=(0.91, 0.93, 0.93), name="rental_warm_white_wall", is_static=True,
         )
         table_height += self.table_z_bias
         self.table = create_table(
             scene=self.scene,
             pose=sapien.Pose([table_xy_bias[0], table_xy_bias[1], table_height]),
-            length=1.4,
-            width=0.96,
-            height=table_height,
-            thickness=0.05,
-            color=(0.28, 0.30, 0.32) if table_color_override is None else table_color_override,
-            is_static=True,
-            texture_id=self.table_texture,
+            length=1.4, width=0.96, height=table_height, thickness=0.05,
+            color=(0.94, 0.95, 0.93) if table_color_override is None else table_color_override,
+            is_static=True, texture_id=self.table_texture,
         )
+        self._create_rental_counter_decor()
+
+    def _create_rental_counter_decor(self):
+        """Keep all decorative solids fixed and outside the loose-item workspace."""
+        oak = (0.77, 0.65, 0.48)
+        navy = (0.055, 0.115, 0.19)
+        white = (0.94, 0.95, 0.93)
+        metal = (0.50, 0.57, 0.60)
+        self.rental_decor = []
+
+        def box(name, position, half_size, color, texture_id=None):
+            position = np.asarray(position, dtype=float).copy()
+            position[2] += self.table_z_bias
+            actor = create_box(
+                scene=self.scene, pose=sapien.Pose(position), half_size=half_size,
+                color=color, is_static=True, name=name, texture_id=texture_id,
+            )
+            self.rental_decor.append(actor)
+            return actor
+
+        # The fascia and trim sit below the original tabletop's 0.74 m surface.
+        box("rental_counter_oak_fascia", [0, -0.567, 0.50], [0.70, 0.015, 0.19], oak,
+            texture_id="rental_light_oak_v2")
+        box("rental_counter_navy_front_trim", [0, -0.584, 0.711], [0.70, 0.006, 0.020], navy)
+        box("rental_counter_metal_inlay", [0, -0.591, 0.687], [0.70, 0.002, 0.003], metal)
+        for side in (-1, 1):
+            box(f"rental_counter_side_trim_{side}", [side * 0.694, -0.10, 0.711],
+                [0.006, 0.48, 0.020], navy)
+
+        # Open, shallow display platforms: no back panel, side walls or overhead cover.
+        # Rear supports are outside each equipment footprint, keeping the sides open.
+        for name in ("flash", "lens"):
+            x, y = EQUIPMENT_LAYOUT[name]["center_xy_m"]
+            box(f"rental_{name}_display_platform", [x, y, 0.834], [0.11, 0.11, 0.006], white)
+            for side in (-1, 1):
+                box(f"rental_{name}_rear_support_{side}", [x + side * 0.085, y + 0.094, 0.784],
+                    [0.007, 0.007, 0.044], metal)
+
+        # Wall shelving stays behind the open lid, with no task-object duplicates.
+        for side in (-1, 1):
+            box(f"rental_rear_shelf_upright_{side}", [side * 0.675, 0.682, 1.23],
+                [0.012, 0.018, 0.40], metal)
+            box(f"rental_rear_lower_shelf_{side}", [side * 0.47, 0.636, 1.045],
+                [0.195, 0.072, 0.014], white)
+            box(f"rental_empty_display_case_{side}", [side * 0.47, 0.65, 1.13],
+                [0.125, 0.045, 0.065], navy)
+            box(f"rental_display_case_handle_{side}", [side * 0.47, 0.601, 1.17],
+                [0.036, 0.004, 0.008], metal)
+        box("rental_rear_upper_shelf", [0, 0.65, 1.267], [0.69, 0.06, 0.014], white)
+
+        for index, center in enumerate(POSTER_CENTERS_M):
+            x, y, z = center
+            box(f"rental_poster_frame_{index}", [x, y + 0.008, z], [0.162, 0.008, 0.212], navy)
+            self.rental_decor.append(create_front_image_panel(
+                self.scene, sapien.Pose([x, y - 0.001, z + self.table_z_bias]),
+                width=0.30, height=0.40, texture_id="rental_poster_v2_en",
+                name=f"rental_photography_poster_{index}",
+            ))
+        box("rental_counter_sign_backing", [0, -0.587, 0.61], [0.25, 0.006, 0.055], navy)
+        self.rental_decor.append(create_front_image_panel(
+            self.scene, sapien.Pose([0, -0.594, 0.61 + self.table_z_bias]),
+            width=0.48, height=0.09, texture_id="rental_counter_sign_v2",
+            name="rental_counter_sign",
+        ))
 
     def load_actors(self):
         self.case = create_sapien_urdf_obj(
             scene=self,
-            pose=sapien.Pose([0.0, -0.02, 0.741]),
+            pose=sapien.Pose([0.0, 0.10, 0.741]),
             modelname="camera_packing_case",
             modelid=None,
             fix_root_link=True,
@@ -87,11 +150,16 @@ class camera_equipment_packing(Base_Task):
         self.case.set_properties(damping=1, stiffness=0, friction=4, force_limit=12)
 
         for name, layout in EQUIPMENT_LAYOUT.items():
-            # Prepared assets already use Z up and bottom-center root origins.
-            # The camera faces -Y and the flash faces -X with this identity pose.
+            # The source root is not the rotated support point. Use the prepared
+            # collision bounds to align physical XY center and bottom to the support.
+            prepared = self.case.config["equipment_poses"][name]
+            support_origin = np.asarray([
+                *layout["center_xy_m"], layout["support_z_m"] + INITIAL_SUPPORT_CLEARANCE_M
+            ])
+            root = support_origin + np.asarray(prepared["root_offset_from_xy_center_and_bottom_m"])
             actor = create_actor(
                 scene=self,
-                pose=sapien.Pose([layout["x"], -0.40, 0.742]),
+                pose=sapien.Pose(root, prepared["quaternion_wxyz"]),
                 modelname=f"camera_packing_{name}",
                 convex=True,
                 is_static=False,
