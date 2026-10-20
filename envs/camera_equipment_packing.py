@@ -14,10 +14,10 @@ LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
 # Centers are physical XY bounding-box centers, not asset root translations.
 EQUIPMENT_LAYOUT = {
-    "camera": {"center_xy_m": [-0.23, -0.42], "support_z_m": 0.74, "mass_kg": 0.45},
-    "flash": {"center_xy_m": [-0.39, -0.16], "support_z_m": 0.84, "mass_kg": 0.10},
-    "lens": {"center_xy_m": [0.39, -0.16], "support_z_m": 0.84, "mass_kg": 0.12},
-    "battery": {"center_xy_m": [0.23, -0.42], "support_z_m": 0.74, "mass_kg": 0.10},
+    "camera": {"center_xy_m": [-0.23, -0.46], "support_z_m": 0.74, "mass_kg": 0.45},
+    "flash": {"center_xy_m": [-0.22, -0.23], "support_z_m": 0.84, "mass_kg": 0.10},
+    "lens": {"center_xy_m": [0.22, -0.23], "support_z_m": 0.84, "mass_kg": 0.12},
+    "battery": {"center_xy_m": [0.23, -0.46], "support_z_m": 0.74, "mass_kg": 0.10},
 }
 INITIAL_SUPPORT_CLEARANCE_M = 0.002
 WALL_FRONT_Y_M = 0.72
@@ -101,9 +101,9 @@ class camera_equipment_packing(Base_Task):
         # Rear supports are outside each equipment footprint, keeping the sides open.
         for name in ("flash", "lens"):
             x, y = EQUIPMENT_LAYOUT[name]["center_xy_m"]
-            box(f"rental_{name}_display_platform", [x, y, 0.834], [0.11, 0.11, 0.006], white)
+            box(f"rental_{name}_display_platform", [x, y, 0.834], [0.09, 0.09, 0.006], white)
             for side in (-1, 1):
-                box(f"rental_{name}_rear_support_{side}", [x + side * 0.085, y + 0.094, 0.784],
+                box(f"rental_{name}_rear_support_{side}", [x + side * 0.067, y + 0.074, 0.784],
                     [0.007, 0.007, 0.044], metal)
 
         # Wall shelving stays behind the open lid, with no task-object duplicates.
