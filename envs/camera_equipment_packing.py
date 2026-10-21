@@ -31,6 +31,7 @@ EQUIPMENT_LAYOUT = {
 INITIAL_SUPPORT_CLEARANCE_M = 0.002
 WALL_FRONT_Y_M = 0.72
 POSTER_CENTERS_M = [[-0.46, 0.702, 1.52], [0.46, 0.702, 1.52]]
+POSTER_TEXTURE_IDS = ["rental_poster_v2_en", "rental_ratecard_v4_en"]
 MAX_DEPENETRATION_SPEED_M_S = 0.5
 MAX_LINEAR_SPEED_M_S = 0.03
 MAX_ANGULAR_SPEED_RAD_S = 0.3
@@ -129,12 +130,12 @@ class camera_equipment_packing(Base_Task):
                 [0.036, 0.004, 0.008], metal)
         box("rental_rear_upper_shelf", [0, 0.65, 1.267], [0.69, 0.06, 0.014], white)
 
-        for index, center in enumerate(POSTER_CENTERS_M):
+        for index, (center, texture_id) in enumerate(zip(POSTER_CENTERS_M, POSTER_TEXTURE_IDS)):
             x, y, z = center
             box(f"rental_poster_frame_{index}", [x, y + 0.008, z], [0.162, 0.008, 0.212], navy)
             self.rental_decor.append(create_front_image_panel(
                 self.scene, sapien.Pose([x, y - 0.001, z + self.table_z_bias]),
-                width=0.30, height=0.40, texture_id="rental_poster_v2_en",
+                width=0.30, height=0.40, texture_id=texture_id,
                 name=f"rental_photography_poster_{index}",
             ))
         box("rental_counter_sign_backing", [0, -0.554, 0.52], [0.154, 0.001, 0.030], navy)
