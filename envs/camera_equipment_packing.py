@@ -10,8 +10,10 @@ from .camera_rental_decor import create_front_image_panel
 from .utils import create_actor, create_box, create_sapien_urdf_obj
 
 
-LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
-RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
+# Retract both wrists to the sides of the case's entire lid sweep. These values
+# enter the normal Robot.move_to_homestate path before actors are loaded.
+LEFT_HOME_STATE = [0.0, -np.pi / 4, 0.0, -3 * np.pi / 4, 0.0, np.pi / 2, np.pi / 4]
+RIGHT_HOME_STATE = [0.0, -np.pi / 4, 0.0, -3 * np.pi / 4, 0.0, np.pi / 2, np.pi / 4]
 # The native two-arm loader still adds -/+0.30 m in world X. These inputs
 # therefore create bases at (-0.84, -0.10, 0.75) and (+0.84, -0.10, 0.75),
 # facing inward along +X and -X respectively. The assembly identity is unchanged.
