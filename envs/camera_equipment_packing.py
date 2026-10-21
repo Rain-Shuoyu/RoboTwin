@@ -25,10 +25,10 @@ PREP_TRAY_ROOT_M = [0.0, -0.397, 0.740]
 STORAGE_RACK_ROOT_M = [0.0, 0.625, 0.0]
 # Centers are physical XY bounding-box centers, not asset root translations.
 EQUIPMENT_LAYOUT = {
-    "camera": {"center_xy_m": [-0.225, -0.400], "support_z_m": 0.747, "mass_kg": 0.45},
-    "flash": {"center_xy_m": [-0.035, -0.385], "support_z_m": 0.747, "mass_kg": 0.10},
-    "lens": {"center_xy_m": [0.115, -0.370], "support_z_m": 0.747, "mass_kg": 0.12},
-    "battery": {"center_xy_m": [0.265, -0.415], "support_z_m": 0.747, "mass_kg": 0.10},
+    "camera": {"center_xy_m": [-0.315, -0.400], "support_z_m": 0.747, "mass_kg": 0.45},
+    "flash": {"center_xy_m": [-0.120, -0.385], "support_z_m": 0.747, "mass_kg": 0.10},
+    "lens": {"center_xy_m": [0.140, -0.370], "support_z_m": 0.747, "mass_kg": 0.12},
+    "battery": {"center_xy_m": [0.310, -0.415], "support_z_m": 0.747, "mass_kg": 0.10},
 }
 INITIAL_SUPPORT_CLEARANCE_M = 0.002
 WALL_FRONT_Y_M = 0.72
