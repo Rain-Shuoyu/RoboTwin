@@ -7,11 +7,20 @@ import sapien
 
 from ._base_task import Base_Task
 from .camera_rental_decor import create_front_image_panel
-from .utils import create_actor, create_box, create_sapien_urdf_obj, create_table
+from .utils import create_actor, create_box, create_sapien_urdf_obj
 
 
 LEFT_HOME_STATE = [-0.30, 0.20, 0.55, -2.20, 0.0, 2.55, 0.785398]
 RIGHT_HOME_STATE = [0.30, 0.20, -0.55, -2.20, 0.0, 2.55, 0.785398]
+# The native two-arm loader still adds -/+0.30 m in world X. These inputs
+# therefore create bases at (-0.84, -0.10, 0.75) and (+0.84, -0.10, 0.75),
+# facing inward along +X and -X respectively. The assembly identity is unchanged.
+SIDE_ARM_LOADER_POSES = [
+    [-0.54, -0.10, 0.75, 1.0, 0.0, 0.0, 0.0],
+    [0.54, -0.10, 0.75, 0.0, 0.0, 0.0, 1.0],
+]
+COUNTER_DIMS_M = [1.40, 0.96, 0.74]
+ARM_PEDESTAL_CENTERS_X_M = [-0.84, 0.84]
 # Centers are physical XY bounding-box centers, not asset root translations.
 EQUIPMENT_LAYOUT = {
     "camera": {"center_xy_m": [-0.23, -0.46], "support_z_m": 0.74, "mass_kg": 0.45},
@@ -39,10 +48,11 @@ class camera_equipment_packing(Base_Task):
         right = kwargs["right_embodiment_config"].copy()
         left["homestate"] = [LEFT_HOME_STATE.copy(), RIGHT_HOME_STATE.copy()]
         right["homestate"] = [LEFT_HOME_STATE.copy(), RIGHT_HOME_STATE.copy()]
+        left["robot_pose"] = [pose.copy() for pose in SIDE_ARM_LOADER_POSES]
+        right["robot_pose"] = [pose.copy() for pose in SIDE_ARM_LOADER_POSES]
         kwargs["left_embodiment_config"] = left
         kwargs["right_embodiment_config"] = right
         kwargs["table_xy_bias"] = [0.0, -0.10]
-        kwargs["table_color_override"] = [0.94, 0.95, 0.93]
         super()._init_task_env_(**kwargs)
 
     def create_table_and_wall(
@@ -51,28 +61,38 @@ class camera_equipment_packing(Base_Task):
     ):
         self.table_xy_bias = table_xy_bias
         self.wall_texture = None
-        self.table_texture = table_texture_override
-        if table_color_override is not None:
-            self.table_texture = None
+        # The fixed asset owns the wood material, rounded top and cabinet body.
+        self.table_texture = None
         self.wall = create_box(
             scene=self.scene,
             pose=sapien.Pose([0, WALL_FRONT_Y_M + 0.05, 1.30]),
             half_size=[1.6, 0.05, 1.30],
             color=(0.91, 0.93, 0.93), name="rental_warm_white_wall", is_static=True,
         )
-        table_height += self.table_z_bias
-        self.table = create_table(
+        self.table = create_actor(
             scene=self.scene,
-            pose=sapien.Pose([table_xy_bias[0], table_xy_bias[1], table_height]),
-            length=1.4, width=0.96, height=table_height, thickness=0.05,
-            color=(0.94, 0.95, 0.93) if table_color_override is None else table_color_override,
-            is_static=True, texture_id=self.table_texture,
+            pose=sapien.Pose([*table_xy_bias, self.table_z_bias]),
+            modelname="camera_rental_counter", model_id=0, convex=True, is_static=True,
         )
+        self.arm_pedestals = [
+            create_actor(
+                scene=self.scene,
+                pose=sapien.Pose([x, -0.10, self.table_z_bias]),
+                modelname="camera_rental_arm_pedestal", model_id=0,
+                convex=True, is_static=True,
+            )
+            for x in ARM_PEDESTAL_CENTERS_X_M
+        ]
+        # Conservative box of the entire rounded cabinet, expressed in world
+        # coordinates. The existing planner transforms it into each arm frame.
+        self.planning_table = {
+            "dims": COUNTER_DIMS_M.copy(),
+            "pose": [*table_xy_bias, 0.37 + self.table_z_bias, 1, 0, 0, 0],
+        }
         self._create_rental_counter_decor()
 
     def _create_rental_counter_decor(self):
         """Keep all decorative solids fixed and outside the loose-item workspace."""
-        oak = (0.77, 0.65, 0.48)
         navy = (0.055, 0.115, 0.19)
         white = (0.94, 0.95, 0.93)
         metal = (0.50, 0.57, 0.60)
@@ -87,15 +107,6 @@ class camera_equipment_packing(Base_Task):
             )
             self.rental_decor.append(actor)
             return actor
-
-        # The fascia and trim sit below the original tabletop's 0.74 m surface.
-        box("rental_counter_oak_fascia", [0, -0.567, 0.50], [0.70, 0.015, 0.19], oak,
-            texture_id="rental_light_oak_v2")
-        box("rental_counter_navy_front_trim", [0, -0.584, 0.711], [0.70, 0.006, 0.020], navy)
-        box("rental_counter_metal_inlay", [0, -0.591, 0.687], [0.70, 0.002, 0.003], metal)
-        for side in (-1, 1):
-            box(f"rental_counter_side_trim_{side}", [side * 0.694, -0.10, 0.711],
-                [0.006, 0.48, 0.020], navy)
 
         # Open, shallow display platforms: no back panel, side walls or overhead cover.
         # Rear supports are outside each equipment footprint, keeping the sides open.
@@ -126,10 +137,10 @@ class camera_equipment_packing(Base_Task):
                 width=0.30, height=0.40, texture_id="rental_poster_v2_en",
                 name=f"rental_photography_poster_{index}",
             ))
-        box("rental_counter_sign_backing", [0, -0.587, 0.61], [0.25, 0.006, 0.055], navy)
+        box("rental_counter_sign_backing", [0, -0.554, 0.52], [0.154, 0.001, 0.030], navy)
         self.rental_decor.append(create_front_image_panel(
-            self.scene, sapien.Pose([0, -0.594, 0.61 + self.table_z_bias]),
-            width=0.48, height=0.09, texture_id="rental_counter_sign_v2",
+            self.scene, sapien.Pose([0, -0.5555, 0.52 + self.table_z_bias]),
+            width=0.30, height=0.056, texture_id="rental_counter_sign_v2",
             name="rental_counter_sign",
         ))
 
