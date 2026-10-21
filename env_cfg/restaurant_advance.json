@@ -1,6 +1,6 @@
 {
   "schema_version": "restaurant_advance_layout_v1",
-  "stage": "equipment_layout_v14_matched_drip_tray_finish",
+  "stage": "equipment_layout_v15_beverage_machine_near_wall",
   "robot_base_translation_m": [0.0, 0.20, 0.0],
   "home_joint_states": {
     "left": [0.03790547366539565, -0.5329034696960475, 0.4612270137952495, -2.9091939705120295, 0.5426568460830519, 2.558907404095831, 0.5819698859705812],
@@ -25,7 +25,7 @@
     "half_size_xy": [0.75, 0.45],
     "top_z": 0.74
   },
-  "geometry_components": ["restaurant_advance_pickup_window_v2.json", "restaurant_advance_drip_tray_extension_v2.json"],
+  "geometry_components": ["restaurant_advance_pickup_window_v2.json", "restaurant_advance_drip_tray_extension_v3_near_wall.json"],
   "materials": {
     "beverage_drip_tray_metal": {
       "base_color": [0.22, 0.212, 0.202, 1.0],
@@ -258,7 +258,7 @@
       "support_z": 0.74
     },
     "drink_dispenser": {
-      "center_xy": [0.46, 0.27],
+      "center_xy": [0.46, 0.345],
       "footprint_xy": [0.42, 0.30],
       "support_z": 0.74
     }
