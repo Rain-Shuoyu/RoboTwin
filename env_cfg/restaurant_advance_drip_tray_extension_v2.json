@@ -1,0 +1,349 @@
+{
+  "schema_version": "robotwin_fixed_geometry_v1",
+  "description_zh": "原接饮盘向前延伸13厘米；深灰哑光金属及三列短横槽接近原机盘面，碰撞与尺寸沿用前一版。",
+  "equipment_attribute": "beverage_machine",
+  "equipment_pose_source": "restaurant_advance.json 中饮料机的安装位姿；本候选机器保持原位",
+  "geometry": [
+    {
+      "name": "beverage_drip_tray_extension",
+      "center": [
+        0.46,
+        0.27,
+        0.74
+      ],
+      "quaternion_wxyz": [
+        0.984807753012208,
+        0,
+        0,
+        -0.17364817766693033
+      ],
+      "material": "beverage_drip_tray_metal",
+      "collision": true,
+      "boxes": [
+        {
+          "center": [
+            0,
+            -0.209,
+            0.1068
+          ],
+          "half_size": [
+            0.18,
+            0.071,
+            0.006
+          ],
+          "material": "beverage_drip_tray_metal"
+        },
+        {
+          "center": [
+            0,
+            -0.278,
+            0.1128
+          ],
+          "half_size": [
+            0.184,
+            0.002,
+            0.009
+          ],
+          "material": "beverage_drip_tray_metal"
+        },
+        {
+          "center": [
+            -0.182,
+            -0.209,
+            0.1128
+          ],
+          "half_size": [
+            0.002,
+            0.071,
+            0.009
+          ],
+          "material": "beverage_drip_tray_metal"
+        },
+        {
+          "center": [
+            0.182,
+            -0.209,
+            0.1128
+          ],
+          "half_size": [
+            0.002,
+            0.071,
+            0.009
+          ],
+          "material": "beverage_drip_tray_metal"
+        }
+      ]
+    },
+    {
+      "name": "beverage_drip_tray_extension_grate",
+      "center": [
+        0.46,
+        0.27,
+        0.74
+      ],
+      "quaternion_wxyz": [
+        0.984807753012208,
+        0,
+        0,
+        -0.17364817766693033
+      ],
+      "material": "beverage_drip_tray_slots",
+      "collision": false,
+      "boxes": [
+        {
+          "center": [
+            -0.116,
+            -0.155,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            -0.116,
+            -0.1725,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            -0.116,
+            -0.19,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            -0.116,
+            -0.2075,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            -0.116,
+            -0.225,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            -0.116,
+            -0.2425,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            -0.116,
+            -0.26,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            0,
+            -0.155,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            0,
+            -0.1725,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            0,
+            -0.19,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            0,
+            -0.2075,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            0,
+            -0.225,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            0,
+            -0.2425,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            0,
+            -0.26,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            0.116,
+            -0.155,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            0.116,
+            -0.1725,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            0.116,
+            -0.19,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            0.116,
+            -0.2075,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            0.116,
+            -0.225,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            0.116,
+            -0.2425,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        },
+        {
+          "center": [
+            0.116,
+            -0.26,
+            0.1128
+          ],
+          "half_size": [
+            0.049,
+            0.002,
+            5e-05
+          ]
+        }
+      ]
+    }
+  ],
+  "foundation_point_lights": []
+}
