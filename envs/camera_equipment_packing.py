@@ -21,12 +21,14 @@ SIDE_ARM_LOADER_POSES = [
 ]
 COUNTER_DIMS_M = [1.40, 0.96, 0.74]
 ARM_PEDESTAL_CENTERS_X_M = [-0.84, 0.84]
+PREP_TRAY_ROOT_M = [0.0, -0.397, 0.740]
+STORAGE_RACK_ROOT_M = [0.0, 0.625, 0.0]
 # Centers are physical XY bounding-box centers, not asset root translations.
 EQUIPMENT_LAYOUT = {
-    "camera": {"center_xy_m": [-0.23, -0.46], "support_z_m": 0.74, "mass_kg": 0.45},
-    "flash": {"center_xy_m": [-0.22, -0.23], "support_z_m": 0.84, "mass_kg": 0.10},
-    "lens": {"center_xy_m": [0.22, -0.23], "support_z_m": 0.84, "mass_kg": 0.12},
-    "battery": {"center_xy_m": [0.23, -0.46], "support_z_m": 0.74, "mass_kg": 0.10},
+    "camera": {"center_xy_m": [-0.225, -0.400], "support_z_m": 0.747, "mass_kg": 0.45},
+    "flash": {"center_xy_m": [-0.035, -0.385], "support_z_m": 0.747, "mass_kg": 0.10},
+    "lens": {"center_xy_m": [0.115, -0.370], "support_z_m": 0.747, "mass_kg": 0.12},
+    "battery": {"center_xy_m": [0.265, -0.415], "support_z_m": 0.747, "mass_kg": 0.10},
 }
 INITIAL_SUPPORT_CLEARANCE_M = 0.002
 WALL_FRONT_Y_M = 0.72
@@ -95,8 +97,6 @@ class camera_equipment_packing(Base_Task):
     def _create_rental_counter_decor(self):
         """Keep all decorative solids fixed and outside the loose-item workspace."""
         navy = (0.055, 0.115, 0.19)
-        white = (0.94, 0.95, 0.93)
-        metal = (0.50, 0.57, 0.60)
         self.rental_decor = []
 
         def box(name, position, half_size, color, texture_id=None):
@@ -109,26 +109,20 @@ class camera_equipment_packing(Base_Task):
             self.rental_decor.append(actor)
             return actor
 
-        # Open, shallow display platforms: no back panel, side walls or overhead cover.
-        # Rear supports are outside each equipment footprint, keeping the sides open.
-        for name in ("flash", "lens"):
-            x, y = EQUIPMENT_LAYOUT[name]["center_xy_m"]
-            box(f"rental_{name}_display_platform", [x, y, 0.834], [0.09, 0.09, 0.006], white)
-            for side in (-1, 1):
-                box(f"rental_{name}_rear_support_{side}", [x + side * 0.067, y + 0.074, 0.784],
-                    [0.007, 0.007, 0.044], metal)
-
-        # Wall shelving stays behind the open lid, with no task-object duplicates.
-        for side in (-1, 1):
-            box(f"rental_rear_shelf_upright_{side}", [side * 0.675, 0.682, 1.23],
-                [0.012, 0.018, 0.40], metal)
-            box(f"rental_rear_lower_shelf_{side}", [side * 0.47, 0.636, 1.045],
-                [0.195, 0.072, 0.014], white)
-            box(f"rental_empty_display_case_{side}", [side * 0.47, 0.65, 1.13],
-                [0.125, 0.045, 0.065], navy)
-            box(f"rental_display_case_handle_{side}", [side * 0.47, 0.601, 1.17],
-                [0.036, 0.004, 0.008], metal)
-        box("rental_rear_upper_shelf", [0, 0.65, 1.267], [0.69, 0.06, 0.014], white)
+        # Both asset roots are their bottom centers; their geometry is already metric.
+        # The rack owns its fixed spare cases, with no duplicate loose task objects.
+        for attribute, modelname, root in (
+            ("prep_tray", "camera_rental_prep_tray", PREP_TRAY_ROOT_M),
+            ("storage_rack", "camera_rental_storage_rack", STORAGE_RACK_ROOT_M),
+        ):
+            position = np.asarray(root, dtype=float).copy()
+            position[2] += self.table_z_bias
+            actor = create_actor(
+                scene=self.scene, pose=sapien.Pose(position), modelname=modelname,
+                model_id=0, convex=True, is_static=True,
+            )
+            setattr(self, attribute, actor)
+            self.rental_decor.append(actor)
 
         for index, (center, texture_id) in enumerate(zip(POSTER_CENTERS_M, POSTER_TEXTURE_IDS)):
             x, y, z = center
