@@ -154,8 +154,9 @@ class camera_equipment_packing(Base_Task):
         self.case.set_mass(5.5, links_name=["case_body"])
         self.case.set_mass(1.2, links_name=["case_lid"])
         self.case.set_qpos([np.deg2rad(105)])
-        # Zero stiffness leaves a real movable hinge; joint friction parks it open.
-        self.case.set_properties(damping=1, stiffness=0, friction=4, force_limit=12)
+        # Preserve the asset's unitless joint friction coefficient. With zero
+        # stiffness, gravity may park the open lid at its existing upper limit.
+        self.case.set_properties(damping=1, stiffness=0, friction=0.04, force_limit=12)
 
         for name, layout in EQUIPMENT_LAYOUT.items():
             # The source root is not the rotated support point. Use the prepared
