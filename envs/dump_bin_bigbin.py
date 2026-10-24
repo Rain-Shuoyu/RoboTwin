@@ -9,6 +9,10 @@ class dump_bin_bigbin(Base_Task):
     def setup_demo(self, **kwags):
         super()._init_task_env_(table_xy_bias=[0.3, 0], **kwags)
 
+    def check_stable(self):
+        # Sphere rotation has no task meaning; their centers must still settle.
+        return super().check_stable(position_only_actors=self.sphere_lst)
+
     def load_actors(self):
         self.dustbin = create_actor(
             self,

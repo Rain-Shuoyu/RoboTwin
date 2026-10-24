@@ -163,10 +163,18 @@ class Base_Task(gym.Env):
 
         self.stage_success_tag = False
 
-    def check_stable(self):
+    def check_stable(self, position_only_actors=()):
+        """Settle actors, checking only centers when rotation has no meaning.
+
+        Positions are in metres. Explicit position-only actors must stay within
+        1 mm of their final center over the same final 200 samples; all other
+        actors retain the original rotation check.
+        """
         actors_list, actors_pose_list = [], []
         for actor in self.scene.get_all_actors():
             actors_list.append(actor)
+        position_tolerance_m = 0.001
+        self._initial_stability_diagnostics = []
 
         def get_sim(p1, p2):
             return np.abs(cal_quat_dis(p1.q, p2.q) * 180)
@@ -182,6 +190,19 @@ class Base_Task(gym.Env):
 
             for idx, actor in enumerate(actors_list):
                 final_pose = actors_pose_list[idx][-1]
+                if actor in position_only_actors:
+                    max_position_deviation_m = max(
+                        float(np.linalg.norm(final_pose.p - pose.p)) for pose in actors_pose_list[idx][-200:])
+                    self._initial_stability_diagnostics.append({
+                        "actor_index": idx,
+                        "actor_name": actor.get_name(),
+                        "max_position_deviation_m": max_position_deviation_m,
+                        "position_tolerance_m": position_tolerance_m,
+                    })
+                    if max_position_deviation_m > position_tolerance_m:
+                        is_stable = False
+                        unstable_list.append(actor.get_name())
+                    continue
                 for pose in actors_pose_list[idx][-200:]:
                     if get_sim(final_pose, pose) > 3.0:
                         is_stable = False
