@@ -331,7 +331,13 @@ class Base_Task(gym.Env):
             texture_id=self.table_texture,
         )
 
-    def get_cluttered_table(self, cluttered_numbers=10, xlim=[-0.59, 0.59], ylim=[-0.34, 0.34], zlim=[0.741]):
+    def get_cluttered_table(self, cluttered_numbers=10, xlim=[-0.59, 0.59], ylim=[-0.34, 0.34], zlim=[0.741],
+                            allowed_models=None):
+        if allowed_models is not None:
+            if not isinstance(allowed_models, (list, tuple)) or not allowed_models:
+                raise ValueError("allowed_models must be a non-empty model list; empty pool is not allowed")
+            if any(not isinstance(name, str) or not name for name in allowed_models):
+                raise ValueError("allowed_models must contain non-empty model names")
         self.record_cluttered_objects = []  # record cluttered objects
 
         xlim[0] += self.table_xy_bias[0]
@@ -351,6 +357,14 @@ class Base_Task(gym.Env):
                 continue
             task_objects_list.append(actor_name)
         self.obj_names, self.cluttered_item_info = get_available_cluttered_objects(task_objects_list)
+        if allowed_models is not None:
+            missing = sorted(set(allowed_models) - set(self.obj_names))
+            if missing:
+                raise ValueError(f"configured clutter models unavailable or without stable parameters: {', '.join(missing)}")
+            allowed = set(allowed_models)
+            self.obj_names = [name for name in self.obj_names if name in allowed]
+            if not self.obj_names:
+                raise ValueError("configured clutter model pool is empty")
 
         success_count = 0
         max_try = 50
