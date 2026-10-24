@@ -8,14 +8,18 @@ and a configurable rigid layout transform for the existing pair of robots.
 The two tool boxes, source density/material, random ranges and <0.6 m
 horizontal-distance success condition are preserved. No expert actions run.
 
-Default layout: rotate +90 degrees, translate (-0.10, 0.26, 0.74) m; shift
-the unchanged 1.2 x 0.7 m table and wall +0.20 m in y. The cube centers are
-x=[-0.15,0.15], y=[0.31,0.51] m, beyond the common near working area of bases
-at (+/-0.30,-0.65,0.75) m. This is a layout candidate: actual direct-grasp
-exclusion, tool reach, collision-free motion and camera visibility have NOT
-been verified. In particular the far end of the full source random range may
-also be unreachable with the original 0.20 m tool; do not infer solvability
-from horizontal distance or a successful reset.
+Default layout: rotate +90 degrees and translate (-0.30,-0.035,0.74) m,
+preserving the horizontal object positions relative to the original Panda
+base (-0.615,0,0), placed by ManiSkill's v3.0.1 TableSceneBuilder.initialize.
+The mapped base xy equals native left Franka's (-0.30,-0.65); the source
+tabletop z=0 maps to native z=.74, while the native base is at z=.75. This
+retains a 1 cm base-to-table height difference from the source environment.
+Cube centers are x=[-0.35,-0.05], y=[0.015,0.215] m. The native table and wall
+keep their standard placement. This task uses the left arm; the other arm
+does not participate. That is a task instruction, not a physical restriction
+or a claim that both arms cannot directly reach the cube. Tool reach,
+collision-free motion and camera visibility remain unverified; a successful
+reset does not prove task solvability.
 
 Public task_parameters: source_to_world_translation (metres),
 source_to_world_yaw (radians), table_xy_bias (metres), success_arm (left/right).
@@ -44,24 +48,14 @@ class maniskill_pull_cube_tool(Base_Task):
     def setup_demo(self, **kwargs):
         parameters = kwargs.pop("task_parameters", {})
         self.layout_translation = np.asarray(
-            parameters.get("source_to_world_translation", [-0.1, 0.26, 0.74]), dtype=float
+            parameters.get("source_to_world_translation", [-0.3, -0.035, 0.74]), dtype=float
         )
         self.layout_yaw = float(parameters.get("source_to_world_yaw", math.pi / 2))
         self.success_arm = parameters.get("success_arm", "left")
         if self.success_arm not in ("left", "right"):
             raise ValueError("success_arm must be left or right")
-        kwargs.setdefault("table_xy_bias", parameters.get("table_xy_bias", [0, 0.2]))
+        kwargs.setdefault("table_xy_bias", parameters.get("table_xy_bias", [0, 0]))
         super()._init_task_env_(**kwargs)
-
-    def create_table_and_wall(self, table_xy_bias=(0, 0.2), **kwargs):
-        # Base_Task keeps its wall at y=1 regardless of table_xy_bias. Move the
-        # wall with this task's table: its front is then y=.60, beyond the cube
-        # random region and cube corners (maximum y approximately .538).
-        super().create_table_and_wall(table_xy_bias=table_xy_bias, **kwargs)
-        pose = self.wall.get_pose()
-        position = np.asarray(pose.p).copy()
-        position[:2] += table_xy_bias
-        self.wall.set_pose(sapien.Pose(position, pose.q))
 
     def _build_l_shaped_tool(self, handle_length, hook_length, width, height):
         # This is the upstream construction, in its original local frame and
