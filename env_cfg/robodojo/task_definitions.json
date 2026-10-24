@@ -1,0 +1,51 @@
+{
+  "source_commit": "f57e1633ffed59761bc8e568cfe7530c4b33381c",
+  "asset_revision": "269457a3b42d8d0ae69898a601f2c1487c2f826e",
+  "tasks": {
+    "store_tools_in_toolbox": {
+      "source_file": "task/RoboDojo/tasks/store_tools_in_toolbox.py",
+      "class_name": "StoreToolsInToolboxCommon",
+      "step_limit": 900
+    },
+    "fill_egg_holder": {
+      "source_file": "task/RoboDojo/tasks/fill_egg_holder.py",
+      "class_name": "FillEggHolderCommon",
+      "step_limit": 700
+    },
+    "organize_table": {
+      "source_file": "task/RoboDojo/tasks/organize_table.py",
+      "class_name": "OrganizeTableCommon",
+      "step_limit": 1000
+    },
+    "plug_in_charger": {
+      "source_file": "task/RoboDojo/tasks/plug_in_charger.py",
+      "class_name": "PlugInChargerCommon",
+      "step_limit": 400
+    },
+    "insert_key": {
+      "source_file": "task/RoboDojo/tasks/insert_key.py",
+      "class_name": "InsertKeyCommon",
+      "step_limit": 300
+    },
+    "sweep_blocks_random": {
+      "source_file": "task/RoboDojo/tasks/sweep_blocks_random.py",
+      "class_name": "SweepBlocksRandomCommon",
+      "step_limit": 1000
+    },
+    "pack_objects_into_box_random": {
+      "source_file": "task/RoboDojo/tasks/pack_objects_into_box_random.py",
+      "class_name": "PackObjectsIntoBoxCommon",
+      "step_limit": 1300
+    },
+    "hang_mugs_random": {
+      "source_file": "task/RoboDojo/tasks/hang_mugs_random.py",
+      "class_name": "HangMugsCommon",
+      "step_limit": 800
+    },
+    "make_toast_random": {
+      "source_file": "task/RoboDojo/tasks/make_toast_random.py",
+      "class_name": "MakeToastCommon",
+      "step_limit": 1400
+    }
+  }
+}

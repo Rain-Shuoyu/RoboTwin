@@ -1,0 +1,299 @@
+{
+  "source_commit": "f57e1633ffed59761bc8e568cfe7530c4b33381c",
+  "asset_revision": "269457a3b42d8d0ae69898a601f2c1487c2f826e",
+  "layouts": {
+    "store_tools_in_toolbox": {
+      "source_seed": 0,
+      "layout_index": 0,
+      "labels": {
+        "hammer": {
+          "kind": "Rigid",
+          "category": "hammer",
+          "category_idx": 5
+        },
+        "pliers": {
+          "kind": "Rigid",
+          "category": "pliers",
+          "category_idx": 0
+        },
+        "tape_measure": {
+          "kind": "Rigid",
+          "category": "tape_measure",
+          "category_idx": 0
+        },
+        "wrench": {
+          "kind": "Rigid",
+          "category": "wrench",
+          "category_idx": 0
+        },
+        "toolbox": {
+          "kind": "Geometry",
+          "category": "toolbox",
+          "category_idx": 0
+        }
+      },
+      "unlabeled_clutter_count": 0
+    },
+    "fill_egg_holder": {
+      "source_seed": 0,
+      "layout_index": 0,
+      "labels": {
+        "target0": {
+          "kind": "Rigid",
+          "category": "egg",
+          "category_idx": 0
+        },
+        "target1": {
+          "kind": "Rigid",
+          "category": "egg",
+          "category_idx": 0
+        },
+        "target2": {
+          "kind": "Rigid",
+          "category": "egg",
+          "category_idx": 0
+        },
+        "target3": {
+          "kind": "Rigid",
+          "category": "egg",
+          "category_idx": 0
+        },
+        "egg_basket": {
+          "kind": "Geometry",
+          "category": "egg_basket",
+          "category_idx": 0
+        },
+        "egg_holder": {
+          "kind": "Articulation",
+          "category": "egg_holder",
+          "category_idx": 0
+        }
+      },
+      "unlabeled_clutter_count": 0
+    },
+    "organize_table": {
+      "source_seed": 0,
+      "layout_index": 0,
+      "labels": {
+        "mouse": {
+          "kind": "Rigid",
+          "category": "mouse",
+          "category_idx": 4
+        },
+        "alarm": {
+          "kind": "Rigid",
+          "category": "alarm",
+          "category_idx": 0
+        },
+        "keyboard": {
+          "kind": "Rigid",
+          "category": "keyboard",
+          "category_idx": 0
+        },
+        "garage": {
+          "kind": "Rigid",
+          "category": "garage",
+          "category_idx": 8
+        },
+        "drawer": {
+          "kind": "Geometry",
+          "category": "drawer",
+          "category_idx": 0
+        },
+        "cube_cushion": {
+          "kind": "Geometry",
+          "category": "cube_cushion",
+          "category_idx": 2
+        },
+        "monitor": {
+          "kind": "Geometry",
+          "category": "monitor",
+          "category_idx": 0
+        },
+        "mousemat": {
+          "kind": "Geometry",
+          "category": "mousemat",
+          "category_idx": 0
+        },
+        "frame": {
+          "kind": "Geometry",
+          "category": "frame",
+          "category_idx": 0
+        }
+      },
+      "unlabeled_clutter_count": 0
+    },
+    "plug_in_charger": {
+      "source_seed": 0,
+      "layout_index": 0,
+      "labels": {
+        "charger": {
+          "kind": "Rigid",
+          "category": "charger",
+          "category_idx": 0
+        },
+        "socket": {
+          "kind": "Rigid",
+          "category": "socket",
+          "category_idx": 0
+        }
+      },
+      "unlabeled_clutter_count": 0
+    },
+    "insert_key": {
+      "source_seed": 0,
+      "layout_index": 0,
+      "labels": {
+        "key": {
+          "kind": "Rigid",
+          "category": "key",
+          "category_idx": 0
+        },
+        "slot": {
+          "kind": "Geometry",
+          "category": "key_slot",
+          "category_idx": 0
+        }
+      },
+      "unlabeled_clutter_count": 0
+    },
+    "sweep_blocks_random": {
+      "source_seed": 0,
+      "layout_index": 0,
+      "labels": {
+        "broom_shovel": {
+          "kind": "Rigid",
+          "category": "broom_shovel",
+          "category_idx": 0
+        },
+        "broom": {
+          "kind": "Rigid",
+          "category": "broom",
+          "category_idx": 0
+        },
+        "target_1_0": {
+          "kind": "Rigid",
+          "category": "paper_ball",
+          "category_idx": 2
+        },
+        "target_1_1": {
+          "kind": "Rigid",
+          "category": "paper_ball",
+          "category_idx": 0
+        },
+        "target_2_0": {
+          "kind": "Rigid",
+          "category": "brick",
+          "category_idx": 2
+        },
+        "target_3_0": {
+          "kind": "Rigid",
+          "category": "earbuds",
+          "category_idx": 1
+        },
+        "target_3_1": {
+          "kind": "Rigid",
+          "category": "earbuds",
+          "category_idx": 2
+        }
+      },
+      "unlabeled_clutter_count": 0
+    },
+    "pack_objects_into_box_random": {
+      "source_seed": 0,
+      "layout_index": 0,
+      "labels": {
+        "car": {
+          "kind": "Rigid",
+          "category": "car",
+          "category_idx": 3
+        },
+        "electric_toothbrush": {
+          "kind": "Rigid",
+          "category": "electric_toothbrush",
+          "category_idx": 6
+        },
+        "hammer": {
+          "kind": "Rigid",
+          "category": "hammer",
+          "category_idx": 8
+        },
+        "shoe": {
+          "kind": "Rigid",
+          "category": "shoe",
+          "category_idx": 15
+        },
+        "box": {
+          "kind": "Rigid",
+          "category": "box",
+          "category_idx": 0
+        }
+      },
+      "unlabeled_clutter_count": 0
+    },
+    "hang_mugs_random": {
+      "source_seed": 0,
+      "layout_index": 0,
+      "labels": {
+        "mug0": {
+          "kind": "Rigid",
+          "category": "mug",
+          "category_idx": 10
+        },
+        "mug1": {
+          "kind": "Rigid",
+          "category": "mug",
+          "category_idx": 14
+        },
+        "mug2": {
+          "kind": "Rigid",
+          "category": "mug",
+          "category_idx": 14
+        },
+        "cup_holder": {
+          "kind": "Geometry",
+          "category": "cup_holder",
+          "category_idx": 1
+        }
+      },
+      "unlabeled_clutter_count": 20
+    },
+    "make_toast_random": {
+      "source_seed": 0,
+      "layout_index": 0,
+      "labels": {
+        "bread_0": {
+          "kind": "Rigid",
+          "category": "bread",
+          "category_idx": 0
+        },
+        "bread_1": {
+          "kind": "Rigid",
+          "category": "bread",
+          "category_idx": 0
+        },
+        "bread_2": {
+          "kind": "Rigid",
+          "category": "bread",
+          "category_idx": 0
+        },
+        "bread_3": {
+          "kind": "Rigid",
+          "category": "bread",
+          "category_idx": 0
+        },
+        "bread_shelf": {
+          "kind": "Geometry",
+          "category": "bread_shelf",
+          "category_idx": 0
+        },
+        "toaster": {
+          "kind": "Articulation",
+          "category": "toaster",
+          "category_idx": 4
+        }
+      },
+      "unlabeled_clutter_count": 8
+    }
+  }
+}
