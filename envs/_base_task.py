@@ -1,5 +1,6 @@
 import os
 import re
+import logging
 import sapien.core as sapien
 from sapien.render import clear_cache as sapien_clear_cache
 from sapien.utils.viewer import Viewer
@@ -163,12 +164,13 @@ class Base_Task(gym.Env):
 
         self.stage_success_tag = False
 
-    def check_stable(self, position_only_actors=()):
+    def check_stable(self, position_only_actors=(), settle_steps=2000):
         """Settle actors, checking only centers when rotation has no meaning.
 
         Positions are in metres. Explicit position-only actors must stay within
         1 mm of their final center over the same final 200 samples; all other
-        actors retain the original rotation check.
+        actors retain the original rotation check. Settle once for the requested
+        steps before collecting the unchanged 500-step sampling window.
         """
         actors_list, actors_pose_list = [], []
         for actor in self.scene.get_all_actors():
@@ -198,8 +200,16 @@ class Base_Task(gym.Env):
                         "actor_name": actor.get_name(),
                         "max_position_deviation_m": max_position_deviation_m,
                         "position_tolerance_m": position_tolerance_m,
+                        "settle_steps": settle_steps,
                     })
-                    if max_position_deviation_m > position_tolerance_m:
+                    position_unstable = max_position_deviation_m > position_tolerance_m
+                    logging.getLogger(__name__ + ".private_initialization").log(
+                        logging.WARNING if position_unstable else logging.INFO,
+                        "private_initialization_stability actor_index=%d actor_name=%s "
+                        "max_position_deviation_m=%.9g position_tolerance_m=%.9g settle_steps=%d",
+                        idx, actor.get_name(), max_position_deviation_m, position_tolerance_m, settle_steps,
+                    )
+                    if position_unstable:
                         is_stable = False
                         unstable_list.append(actor.get_name())
                     continue
@@ -210,7 +220,7 @@ class Base_Task(gym.Env):
                         break
 
         is_stable = True
-        for _ in range(2000):
+        for _ in range(settle_steps):
             self.scene.step()
         for idx, actor in enumerate(actors_list):
             actors_pose_list.append([actor.get_pose()])

@@ -11,7 +11,8 @@ class dump_bin_bigbin(Base_Task):
 
     def check_stable(self):
         # Sphere rotation has no task meaning; their centers must still settle.
-        return super().check_stable(position_only_actors=self.sphere_lst)
+        # Allow 60 simulated seconds for the initially dense sphere contacts.
+        return super().check_stable(position_only_actors=self.sphere_lst, settle_steps=15000)
 
     def load_actors(self):
         self.dustbin = create_actor(
