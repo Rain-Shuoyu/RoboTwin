@@ -9,6 +9,9 @@ The original single peg collision box, orange/white visual halves, four wall
 boxes, randomized dimensions/poses, 3 mm clearance and hole-frame head-position
 predicate are preserved. The source predicate has no orientation or upper-x
 test; this port deliberately does not add one.
+Object collisions explicitly use the source DefaultMaterialsConfig values
+(static friction .3, dynamic friction .3, restitution 0), independently of
+RoboTwin's scene-wide default and without changing table or robot materials.
 
 Default layout: rotate +90 degrees and translate (0.10,-0.10,0.74) m onto
 the native tabletop. This preserves every relative object pose and dimension;
@@ -28,7 +31,7 @@ import sapien
 from ._base_task import Base_Task
 
 
-def _build_box_with_hole(scene, inner_radius, outer_radius, depth, center=(0, 0)):
+def _build_box_with_hole(scene, inner_radius, outer_radius, depth, center=(0, 0), *, physical_material):
     # Upstream geometry, including asymmetric wall widths for the offset hole.
     # The local x axis is the insertion direction.
     builder = scene.create_actor_builder()
@@ -51,7 +54,7 @@ def _build_box_with_hole(scene, inner_radius, outer_radius, depth, center=(0, 0)
         base_color=[255 / 255, 210 / 255, 137 / 255, 1], roughness=0.5, specular=0.5
     )
     for half_size, pose in zip(half_sizes, poses):
-        builder.add_box_collision(pose, half_size)
+        builder.add_box_collision(pose, half_size, material=physical_material)
         builder.add_box_visual(pose, half_size, material=mat)
     return builder
 
@@ -74,6 +77,10 @@ class maniskill_peg_insertion_side(Base_Task):
         self.source_to_world = sapien.Pose(
             translation, [math.cos(self.layout_yaw / 2), 0, 0, math.sin(self.layout_yaw / 2)]
         )
+        # This compatibility API constructs a task-local PhysxMaterial;
+        # assigning scene.default_physical_material would not set the engine
+        # default used by add_box_collision when its material is omitted.
+        self.object_physical_material = self.scene.create_physical_material(0.3, 0.3, 0)
         length = float(np.random.uniform(0.085, 0.125))
         radius = float(np.random.uniform(0.015, 0.025))
         center = 0.5 * (length - radius) * np.random.uniform(-1, 1, size=2)
@@ -83,7 +90,9 @@ class maniskill_peg_insertion_side(Base_Task):
         self.box_hole_radius = radius + self._clearance
 
         builder = self.scene.create_actor_builder()
-        builder.add_box_collision(half_size=[length, radius, radius])
+        builder.add_box_collision(
+            half_size=[length, radius, radius], material=self.object_physical_material
+        )
         mat = sapien.render.RenderMaterial(
             base_color=[236 / 255, 115 / 255, 87 / 255, 1], roughness=0.5, specular=0.5
         )
@@ -101,7 +110,8 @@ class maniskill_peg_insertion_side(Base_Task):
         builder.set_initial_pose(self.source_to_world * sapien.Pose([0, 0, 0.1]))
         self.peg = builder.build("peg")
         builder = _build_box_with_hole(
-            self.scene, radius + self._clearance, length, length, center=center
+            self.scene, radius + self._clearance, length, length, center=center,
+            physical_material=self.object_physical_material,
         )
         builder.set_initial_pose(self.source_to_world * sapien.Pose([0, 1, 0.1]))
         self.box = builder.build_kinematic("box_with_hole")

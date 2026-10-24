@@ -7,6 +7,9 @@ Modified for RoboTwin: native Base_Task lifecycle, NumPy episode sampling,
 and a configurable rigid layout transform for the existing pair of robots.
 The two tool boxes, source density/material, random ranges and <0.6 m
 horizontal-distance success condition are preserved. No expert actions run.
+Object collisions explicitly use the source DefaultMaterialsConfig values
+(static friction .3, dynamic friction .3, restitution 0), independently of
+RoboTwin's scene-wide default and without changing table or robot materials.
 
 Default layout: rotate +90 degrees and translate (-0.30,-0.035,0.74) m,
 preserving the horizontal object positions relative to the original Panda
@@ -70,6 +73,7 @@ class maniskill_pull_cube_tool(Base_Task):
             sapien.Pose([handle_length / 2, 0, 0]),
             [handle_length / 2, width / 2, height / 2],
             density=500,
+            material=self.object_physical_material,
         )
         builder.add_box_visual(
             sapien.Pose([handle_length / 2, 0, 0]),
@@ -79,6 +83,7 @@ class maniskill_pull_cube_tool(Base_Task):
         builder.add_box_collision(
             sapien.Pose([handle_length - hook_length / 2, width, 0]),
             [hook_length / 2, width, height / 2],
+            material=self.object_physical_material,
         )
         builder.add_box_visual(
             sapien.Pose([handle_length - hook_length / 2, width, 0]),
@@ -93,8 +98,13 @@ class maniskill_pull_cube_tool(Base_Task):
         self.source_to_world = sapien.Pose(
             translation, [math.cos(self.layout_yaw / 2), 0, 0, math.sin(self.layout_yaw / 2)]
         )
+        # SAPIEN's compatibility API returns PhysxMaterial. Do not rely on
+        # the engine default, whose restitution differs from ManiSkill's.
+        self.object_physical_material = self.scene.create_physical_material(0.3, 0.3, 0)
         builder = self.scene.create_actor_builder()
-        builder.add_box_collision(half_size=[self.cube_half_size] * 3)
+        builder.add_box_collision(
+            half_size=[self.cube_half_size] * 3, material=self.object_physical_material
+        )
         builder.add_box_visual(
             half_size=[self.cube_half_size] * 3,
             material=sapien.render.RenderMaterial(base_color=np.array([12, 42, 160, 255]) / 255),
